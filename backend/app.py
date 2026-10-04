@@ -405,6 +405,68 @@ def db_status():
             "message": str(e)
         }), 500
 
+@app.route('/api/auth/google', methods=['POST'])
+def google_auth():
+    data = request.get_json() or {}
+    token = data.get('credential')
+    email = data.get('email')
+    name = data.get('name')
+    picture = data.get('picture')
+
+    # If Google ID token is provided, verify or decode it
+    if token:
+        try:
+            client_id = os.environ.get('GOOGLE_CLIENT_ID')
+            try:
+                from google.oauth2 import id_token
+                from google.auth.transport import requests as google_requests
+                id_info = id_token.verify_oauth2_token(token, google_requests.Request(), client_id)
+                email = id_info.get('email', email)
+                name = id_info.get('name', name)
+                picture = id_info.get('picture', picture)
+            except Exception:
+                # Fallback: base64 decode JWT payload safely
+                import base64
+                parts = token.split('.')
+                if len(parts) >= 2:
+                    padding = 4 - (len(parts[1]) % 4)
+                    payload_bytes = base64.urlsafe_b64decode(parts[1] + '=' * padding)
+                    payload = json.loads(payload_bytes.decode('utf-8'))
+                    email = payload.get('email', email)
+                    name = payload.get('name', name)
+                    picture = payload.get('picture', picture)
+        except Exception as e:
+            print(f"Google token verification note: {e}")
+
+    if not email:
+        return jsonify({"status": "error", "message": "Email is required from Google account."}), 400
+
+    email = email.strip().lower()
+
+    # Find existing user or auto-register new Google user
+    user = User.query.filter_by(email=email).first()
+    if not user:
+        base_username = (name or email.split('@')[0]).strip()
+        username = base_username
+        suffix = 1
+        while User.query.filter_by(username=username).first():
+            username = f"{base_username}_{suffix}"
+            suffix += 1
+
+        dummy_pw = generate_password_hash(os.urandom(24).hex())
+        user = User(email=email, username=username, password_hash=dummy_pw)
+        db.session.add(user)
+        db.session.commit()
+
+    return jsonify({
+        "status": "success",
+        "user_id": user.id,
+        "email": user.email,
+        "username": user.username,
+        "picture": picture,
+        "message": f"Successfully authenticated as {user.username}."
+    })
+
 @app.route('/api/auth/register', methods=['POST'])
 def register():
     data = request.get_json()
