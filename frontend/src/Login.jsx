@@ -657,7 +657,7 @@ export default function ResumeGeometryBackground({
         <div className="minimal-login-container fade-in-up">
           {/* Top Logo */}
           <div className="minimal-logo-wrapper">
-            <img src="/logo resume.jpg" alt="Intelligent Resume Logo" className="minimal-login-logo" />
+            <img src="/new uthm.png" alt="UTHM Logo" className="minimal-login-logo" />
           </div>
 
           {/* Headline with interactive hover effect (spread single line) */}

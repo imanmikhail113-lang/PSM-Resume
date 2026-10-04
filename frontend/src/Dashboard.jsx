@@ -579,7 +579,7 @@ function Dashboard({ onLogout, userId, theme = 'dark' }) {
       {/* Sidebar */}
       <aside className="sidebar">
         <div className="sidebar-header">
-          <img src="/logo resume.jpg" alt="Intelligent Resume Logo" className="sidebar-logo" />
+          <img src="/new uthm.png" alt="UTHM Logo" className="sidebar-logo" />
         </div>
         <nav className="sidebar-nav">
           <a 
