@@ -3,6 +3,8 @@
   "version": "1.0.0",
   "description": "Root configuration to run both frontend and backend concurrently",
   "scripts": {
+    "build": "npm --prefix frontend install && npm --prefix frontend run build",
+    "vercel-build": "npm --prefix frontend install && npm --prefix frontend run build",
     "start": "concurrently \"npm run start:frontend\" \"npm run start:backend\"",
     "start:frontend": "cd frontend && npm run dev",
     "start:backend": "cd backend && .\\venv\\Scripts\\python.exe app.py",

@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './index.css';
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
 function Login({ onLoginSuccess }) {
   const [mode, setMode] = useState('login'); // 'login', 'register', 'forgot'
   const [forgotStep, setForgotStep] = useState(1);
@@ -581,7 +583,7 @@ export default function ResumeGeometryBackground({
       const bodyPayload = mode === 'login' ? { email, password } : { username, email, password };
 
       try {
-        const response = await fetch(`http://localhost:5000${endpoint}`, {
+        const response = await fetch(`${API_BASE_URL}${endpoint}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(bodyPayload),
@@ -613,7 +615,7 @@ export default function ResumeGeometryBackground({
     } else if (mode === 'forgot') {
       if (forgotStep === 1) {
         try {
-          const response = await fetch(`http://localhost:5000/api/auth/verify-email`, {
+          const response = await fetch(`${API_BASE_URL}/api/auth/verify-email`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email }),
@@ -642,7 +644,7 @@ export default function ResumeGeometryBackground({
           return;
         }
         try {
-          const response = await fetch(`http://localhost:5000/api/auth/reset-password`, {
+          const response = await fetch(`${API_BASE_URL}/api/auth/reset-password`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, new_password: newPassword }),

@@ -28,6 +28,8 @@ ChartJS.register(
   ArcElement
 );
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
 function Dashboard({ onLogout, userId, theme = 'dark' }) {
   const username = localStorage.getItem('user_username') || 'Mikhail';
   const [activeTab, setActiveTab] = useState('USER HUB');
@@ -88,7 +90,7 @@ function Dashboard({ onLogout, userId, theme = 'dark' }) {
   };
 
   const fetchDbStatus = async () => {
-    const data = await safeFetchJson('http://localhost:5000/api/db-status');
+    const data = await safeFetchJson(`${API_BASE_URL}/api/db-status`);
     if (data && data.status === 'success') {
       setDbStatus({ connected: data.connected, provider: data.provider });
     } else {
@@ -98,7 +100,7 @@ function Dashboard({ onLogout, userId, theme = 'dark' }) {
 
   const fetchHistory = async () => {
     if (!userId) return;
-    const data = await safeFetchJson(`http://localhost:5000/api/history/${userId}`);
+    const data = await safeFetchJson(`${API_BASE_URL}/api/history/${userId}`);
     if (data && data.data) {
       const sorted = data.data.slice().reverse(); // chronological
       const scores = sorted.map(r => r.ats_score || 0);
@@ -132,7 +134,7 @@ function Dashboard({ onLogout, userId, theme = 'dark' }) {
 
   const fetchLatestAnalysis = async () => {
     if (!userId) return;
-    const data = await safeFetchJson(`http://localhost:5000/api/latest-analysis/${userId}`);
+    const data = await safeFetchJson(`${API_BASE_URL}/api/latest-analysis/${userId}`);
     if (data && data.data) {
       setResult(data.data);
       if (data.data.parsed_content?.ats_score) {
@@ -143,7 +145,7 @@ function Dashboard({ onLogout, userId, theme = 'dark' }) {
 
   const fetchLatestTargetedScan = async () => {
     if (!userId) return;
-    const data = await safeFetchJson(`http://localhost:5000/api/latest-targeted-scan/${userId}`);
+    const data = await safeFetchJson(`${API_BASE_URL}/api/latest-targeted-scan/${userId}`);
     if (data && data.data) {
       setTargetedResult(data.data);
     }
@@ -151,7 +153,7 @@ function Dashboard({ onLogout, userId, theme = 'dark' }) {
 
   const fetchLatestDiscoveryScan = async () => {
     if (!userId) return;
-    const data = await safeFetchJson(`http://localhost:5000/api/latest-discovery-scan/${userId}`);
+    const data = await safeFetchJson(`${API_BASE_URL}/api/latest-discovery-scan/${userId}`);
     if (data && data.data && data.data.results_data) {
       setDiscoveryResult(data.data.results_data);
     }
@@ -451,7 +453,7 @@ function Dashboard({ onLogout, userId, theme = 'dark' }) {
     formData.append('user_id', userId);
 
     try {
-      const response = await fetch('http://localhost:5000/api/analyze', {
+      const response = await fetch(`${API_BASE_URL}/api/analyze`, {
         method: 'POST',
         body: formData,
       });
@@ -497,14 +499,14 @@ function Dashboard({ onLogout, userId, theme = 'dark' }) {
     formData.append('user_id', userId);
 
     try {
-      const response = await fetch('http://localhost:5000/api/analyze/image', {
+      const response = await fetch(`${API_BASE_URL}/api/analyze/image`, {
         method: 'POST',
         body: formData
       });
       const data = await response.json();
       if (response.ok) {
         setImageResult(data.data.feedback_data);
-        setImagePreview(`http://localhost:5000${data.data.image_path}`);
+        setImagePreview(`${API_BASE_URL}${data.data.image_path}`);
       } else {
         setError(data.message || 'Image analysis failed.');
       }
@@ -520,7 +522,7 @@ function Dashboard({ onLogout, userId, theme = 'dark' }) {
     setIsAnalyzingTargeted(true);
     setError(null);
     try {
-      const response = await fetch('http://localhost:5000/api/analyze/targeted', {
+      const response = await fetch(`${API_BASE_URL}/api/analyze/targeted`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -551,7 +553,7 @@ function Dashboard({ onLogout, userId, theme = 'dark' }) {
     setIsAnalyzingDiscovery(true);
     setError(null);
     try {
-      const response = await fetch('http://localhost:5000/api/analyze/discovery', {
+      const response = await fetch(`${API_BASE_URL}/api/analyze/discovery`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ user_id: userId })
