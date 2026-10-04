@@ -1,15 +1,10 @@
 Flask
 flask-cors
+Flask-SQLAlchemy
 PyMuPDF
-scikit-learn
-spacy
-opencv-python
-# tensorflow (Disabled temporarily due to Python 3.14 incompatibility)
-python-dotenv
-gunicorn
-numpy
 google-genai
 pydantic
-Flask-SQLAlchemy
+python-dotenv
+gunicorn
+psycopg[binary]
 psycopg2-binary
-

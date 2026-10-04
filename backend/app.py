@@ -24,19 +24,37 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 db_uri = os.environ.get('SQLALCHEMY_DATABASE_URI', 'sqlite:///psm.db')
 connect_args = {}
 
-if db_uri.startswith('postgresql'):
-    import urllib.parse
-    import socket
+# Normalize standard postgres prefix for SQLAlchemy
+if db_uri.startswith('postgres://'):
+    db_uri = db_uri.replace('postgres://', 'postgresql://', 1)
+
+# Ensure compatibility with whichever driver is installed (psycopg v3 or psycopg2)
+try:
+    import psycopg
+except ImportError:
     try:
-        parsed = urllib.parse.urlparse(db_uri)
-        if parsed.hostname and 'supabase' in parsed.hostname:
-            ipv4 = socket.gethostbyname(parsed.hostname)
-            new_netloc = parsed.netloc.replace(parsed.hostname, ipv4)
-            db_uri = parsed._replace(netloc=new_netloc).geturl()
-    except Exception as e:
-        print(f"Hostname resolution note: {e}")
+        import psycopg2
+        if db_uri.startswith('postgresql://'):
+            db_uri = db_uri.replace('postgresql://', 'postgresql+psycopg2://', 1)
+    except ImportError:
+        pass
+
+if 'postgresql' in db_uri:
+    # On Windows local machines, handle Supabase IPv6-only DNS quirks by resolving to IPv4
+    if os.name == 'nt':
+        import urllib.parse
+        import socket
+        try:
+            parsed = urllib.parse.urlparse(db_uri)
+            if parsed.hostname and 'supabase' in parsed.hostname:
+                ipv4 = socket.gethostbyname(parsed.hostname)
+                new_netloc = parsed.netloc.replace(parsed.hostname, ipv4)
+                db_uri = parsed._replace(netloc=new_netloc).geturl()
+        except Exception as e:
+            print(f"Hostname resolution note: {e}")
+
     connect_args = {
-        'connect_timeout': 5,
+        'connect_timeout': 10,
         'sslmode': 'require',
         'keepalives': 1,
         'keepalives_idle': 30,
