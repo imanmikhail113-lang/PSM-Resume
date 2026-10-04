@@ -6,5 +6,6 @@ google-genai
 pydantic
 python-dotenv
 gunicorn
-psycopg[binary]
+psycopg
+psycopg-binary
 psycopg2-binary
