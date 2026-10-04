@@ -1,0 +1,15 @@
+Flask
+flask-cors
+PyMuPDF
+scikit-learn
+spacy
+opencv-python
+# tensorflow (Disabled temporarily due to Python 3.14 incompatibility)
+python-dotenv
+gunicorn
+numpy
+google-genai
+pydantic
+Flask-SQLAlchemy
+psycopg2-binary
+

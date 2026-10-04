@@ -1,0 +1,39 @@
+# Environment variables and secrets
+.env
+.env.*
+*.env
+backend/.env
+
+# Dependencies
+node_modules/
+frontend/node_modules/
+backend/venv/
+venv/
+ENV/
+env/
+
+# Python cache & build
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+*.log
+
+# Frontend build
+frontend/dist/
+dist/
+dist-ssr/
+*.local
+
+# OS / Editor artifacts
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Test outputs
+*.pdf
+!public/*.pdf
