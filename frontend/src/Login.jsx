@@ -12,23 +12,17 @@ function Login({ onLoginSuccess }) {
   const [customGoogleName, setCustomGoogleName] = useState('');
 
   // ═══════════════════════════════════════════════════════════════════════════
-  // INTERACTIVE GEOMETRIC BACKGROUND CONTROLS
+  // INTERACTIVE GEOMETRIC BACKGROUND CONTROLS (Removed for public)
   // ═══════════════════════════════════════════════════════════════════════════
-  const [speed, setSpeed] = useState(1.0); // 0.2x to 3.0x
-  const [parallaxDamping, setParallaxDamping] = useState(0.05); // 0.01 to 0.15
-  const [density, setDensity] = useState(1.0); // 0.5x to 2.0x
-  const [showCard, setShowCard] = useState(true);
-  const [showControls, setShowControls] = useState(false);
-  const [showExportModal, setShowExportModal] = useState(false);
-  const [copied, setCopied] = useState(false);
+  const speed = 1.0;
+  const parallaxDamping = 0.05;
+  const density = 1.0;
+  const showCard = true;
 
   const canvasRef = useRef(null);
 
-  // References to keep animation loop in sync with real-time slider controls
-  const controlsRef = useRef({ speed: 1.0, parallaxDamping: 0.05, density: 1.0 });
-  useEffect(() => {
-    controlsRef.current = { speed, parallaxDamping, density };
-  }, [speed, parallaxDamping, density]);
+  // References to keep animation loop working with static values
+  const controlsRef = useRef({ speed, parallaxDamping, density });
 
   // ═══════════════════════════════════════════════════════════════════════════
   // RESUME THEME GEOMETRY CANVAS SIMULATION
@@ -657,147 +651,6 @@ export default function ResumeGeometryBackground({
     <div className="minimal-login-page">
       {/* ── RESUME THEME GEOMETRY CANVAS BACKGROUND ── */}
       <canvas ref={canvasRef} className="resume-geometry-canvas" />
-
-      {/* ── ANIMATION SETTINGS COGWHEEL BUTTON (BOTTOM LEFT) ── */}
-      <div className="anim-settings-wrapper">
-        <button
-          type="button"
-          className={`anim-settings-gear-btn ${showControls ? 'active' : ''}`}
-          onClick={() => setShowControls(!showControls)}
-          title="Animation Settings"
-          aria-label="Animation Settings"
-        >
-          <svg
-            className="anim-gear-icon"
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
-            <circle cx="12" cy="12" r="3" />
-          </svg>
-        </button>
-
-        {showControls && (
-          <div className="anim-settings-popover">
-            <div className="anim-popover-header">
-              <div className="anim-popover-title">
-                <span className="anim-popover-dot" />
-                <span>Animation Settings</span>
-              </div>
-              <button
-                type="button"
-                className="anim-popover-close"
-                onClick={() => setShowControls(false)}
-                title="Close"
-              >
-                ✕
-              </button>
-            </div>
-
-            <div className="anim-popover-body">
-              <div className="hud-control-row">
-                <label>Speed: <span>{speed.toFixed(1)}x</span></label>
-                <input
-                  type="range"
-                  min="0.2"
-                  max="3.0"
-                  step="0.1"
-                  value={speed}
-                  onChange={(e) => setSpeed(parseFloat(e.target.value))}
-                />
-              </div>
-
-              <div className="hud-control-row">
-                <label>Parallax: <span>{parallaxDamping.toFixed(2)}</span></label>
-                <input
-                  type="range"
-                  min="0.01"
-                  max="0.15"
-                  step="0.01"
-                  value={parallaxDamping}
-                  onChange={(e) => setParallaxDamping(parseFloat(e.target.value))}
-                />
-              </div>
-
-              <div className="hud-control-row">
-                <label>Density: <span>{density.toFixed(1)}x</span></label>
-                <input
-                  type="range"
-                  min="0.5"
-                  max="2.0"
-                  step="0.1"
-                  value={density}
-                  onChange={(e) => setDensity(parseFloat(e.target.value))}
-                />
-              </div>
-
-              <div className="anim-popover-actions">
-                <button
-                  type="button"
-                  className={`anim-action-btn ${showCard ? '' : 'hidden-state'}`}
-                  onClick={() => setShowCard(!showCard)}
-                  title={showCard ? 'Hide Login Card' : 'Show Login Card'}
-                >
-                  {showCard ? '👁️ Hide Card' : '👁️ Show Card'}
-                </button>
-                <button
-                  type="button"
-                  className="anim-action-export-btn"
-                  onClick={() => {
-                    setShowControls(false);
-                    setShowExportModal(true);
-                  }}
-                  title="Export Next.js Component"
-                >
-                  ⚡ Export Next.js
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* ── NEXT.JS INSTANT EXPORT MODAL ── */}
-      {showExportModal && (
-        <div className="hud-modal-overlay" onClick={() => setShowExportModal(false)}>
-          <div className="hud-modal-content" onClick={(e) => e.stopPropagation()}>
-            <div className="hud-modal-header">
-              <h3>⚡ Next.js Component Exporter</h3>
-              <button
-                type="button"
-                className="hud-modal-close"
-                onClick={() => setShowExportModal(false)}
-              >
-                ✕
-              </button>
-            </div>
-            <p className="hud-modal-desc">
-              Copy and paste this standalone <strong>ResumeGeometryBackground.tsx</strong> component into your Next.js App Router or Pages project.
-            </p>
-            <pre className="hud-code-preview">
-              <code>{nextJsExportCode}</code>
-            </pre>
-            <div className="hud-modal-actions">
-              <button type="button" className="btn-copy-code" onClick={copyToClipboard}>
-                {copied ? '✓ Copied to Clipboard!' : '📋 Copy Code'}
-              </button>
-              <button
-                type="button"
-                className="btn-close-modal"
-                onClick={() => setShowExportModal(false)}
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* ── CENTERED LOGIN CARD & HEADLINE ── */}
       {showCard && (
