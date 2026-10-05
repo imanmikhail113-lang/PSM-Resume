@@ -1960,187 +1960,348 @@ function Dashboard({ onLogout, userId, theme = 'dark' }) {
 
         {activeTab === 'BENCHMARK' && (
           <div className="benchmark-dashboard fade-in-up">
-            <header className="content-header mb-5" style={{ textAlign: 'center' }}>
-              <h1 style={{ fontWeight: 800, fontSize: '2.5rem', textTransform: 'uppercase' }}>
+            <div className="benchmark-ambient-glow"></div>
+
+            <header className="benchmark-header">
+              <div className="benchmark-tag-badge">
+                <span className="benchmark-tag-dot"></span>
+                <span>Industry Comparative Analysis • ATS Threshold</span>
+              </div>
+              <h1 className="benchmark-title">
                 <span className="gradient-text">MARKET READINESS BENCHMARKING</span>
               </h1>
             </header>
 
-            <div className="benchmark-main-content">
-              <div className="glass-panel benchmark-chart-panel">
-                <div className="benchmark-chart-container" style={{ height: '350px', width: '100%', maxWidth: '600px', margin: '0 auto' }}>
-                  <Bar data={benchmarkChartData} options={benchmarkChartOptions} />
+            {/* 3-Card KPI Comparative Summary HUD */}
+            <div className="benchmark-kpi-grid">
+              <div className="benchmark-kpi-card kpi-card-user">
+                <div className="kpi-top-row">
+                  <span className="kpi-label">Your Resume Score</span>
+                  <span className="kpi-icon-pill">📄</span>
                 </div>
-                <p style={{ textAlign: 'center', color: '#94a3b8', fontSize: '0.85rem', marginTop: '1.5rem', fontStyle: 'italic' }}>
-                  *Industry Benchmark can be different based on each industry, in general most industry set their ATS benchmark is 70%&gt;
-                </p>
+                <div className="kpi-value-row">
+                  <span className="kpi-number num-blue">{userScore}</span>
+                  <span className="kpi-unit">%</span>
+                </div>
+                <div className="kpi-status-sub">
+                  <span>{userScore >= benchmarkScore ? '✅ Passed ATS Threshold' : '⚠️ Below Passing Cutoff'}</span>
+                </div>
+              </div>
+
+              <div className="benchmark-kpi-card kpi-card-target">
+                <div className="kpi-top-row">
+                  <span className="kpi-label">Industry Benchmark</span>
+                  <span className="kpi-icon-pill">🎯</span>
+                </div>
+                <div className="kpi-value-row">
+                  <span className="kpi-number num-yellow">{benchmarkScore}</span>
+                  <span className="kpi-unit">%</span>
+                </div>
+                <div className="kpi-status-sub">
+                  <span>Global ATS Filter Cutoff (70%+)</span>
+                </div>
+              </div>
+
+              <div className={`benchmark-kpi-card kpi-card-gap ${userScore >= benchmarkScore ? '' : 'gap-negative'}`}>
+                <div className="kpi-top-row">
+                  <span className="kpi-label">Readiness Gap</span>
+                  <span className="kpi-icon-pill">{userScore >= benchmarkScore ? '🚀' : '📊'}</span>
+                </div>
+                <div className="kpi-value-row">
+                  <span className={`kpi-number ${userScore >= benchmarkScore ? 'num-green' : 'num-red'}`}>
+                    {userScore >= benchmarkScore ? `+${userScore - benchmarkScore}` : `${userScore - benchmarkScore}`}
+                  </span>
+                  <span className="kpi-unit">%</span>
+                </div>
+                <div className="kpi-status-sub">
+                  <span>{userScore >= benchmarkScore ? 'Above Market Average' : 'Points Required to Pass'}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="benchmark-main-content">
+              <div className="benchmark-studio-panel">
+                <div className="benchmark-panel-bar">
+                  <div className="benchmark-bar-left">
+                    <div className="benchmark-bar-dots">
+                      <span className="w-dot red"></span>
+                      <span className="w-dot yellow"></span>
+                      <span className="w-dot green"></span>
+                    </div>
+                    <span className="benchmark-bar-title">ATS SCORE COMPARATIVE VISUALIZATION</span>
+                  </div>
+                  <div className="benchmark-live-indicator">
+                    <span className="badge-glow-dot" style={{ background: '#10b981', boxShadow: '0 0 8px #10b981' }}></span>
+                    <span>LIVE BENCHMARK</span>
+                  </div>
+                </div>
+
+                <div className="benchmark-chart-inner">
+                  <div className="benchmark-chart-container" style={{ height: '360px', width: '100%', maxWidth: '640px', margin: '0 auto' }}>
+                    <Bar data={benchmarkChartData} options={benchmarkChartOptions} />
+                  </div>
+                </div>
+
+                <div className="benchmark-footnote-card">
+                  <span className="footnote-icon">ℹ️</span>
+                  <p className="benchmark-footnote-text">
+                    *Industry Benchmark can be different based on each industry, in general most industry set their ATS benchmark is 70%&gt;
+                  </p>
+                </div>
               </div>
 
               {/* Feedback Box */}
               {userScore < benchmarkScore ? (
-                <div className="feedback-box feedback-box-warning mt-5">
-                  <span className="feedback-icon">⚠️</span>
-                  <p className="feedback-text">
-                    "You are below the benchmark. Most Likely ATS filters will reject this version."
-                  </p>
+                <div className="benchmark-verdict-card benchmark-verdict-warning">
+                  <div className="verdict-icon-bubble">⚠️</div>
+                  <div className="verdict-text-content">
+                    <p className="benchmark-feedback-quote">
+                      "You are below the benchmark. Most Likely ATS filters will reject this version."
+                    </p>
+                  </div>
                 </div>
               ) : (
-                <div className="feedback-box feedback-box-success mt-5">
-                  <span className="feedback-icon">✅</span>
-                  <p className="feedback-text">
-                    "Congratulations! You are above the benchmark. Your resume has a high chance of passing standard ATS filters."
-                  </p>
+                <div className="benchmark-verdict-card benchmark-verdict-success">
+                  <div className="verdict-icon-bubble">✅</div>
+                  <div className="verdict-text-content">
+                    <p className="benchmark-feedback-quote">
+                      "Congratulations! You are above the benchmark. Your resume has a high chance of passing standard ATS filters."
+                    </p>
+                  </div>
                 </div>
               )}
             </div>
 
-            <div className="flex-end mt-5">
-               <button className="btn-action btn-targeted" onClick={() => setActiveTab('IMAGE')}>IMAGE</button>
+            <div className="benchmark-nav-row">
+               <button className="benchmark-action-btn" onClick={() => setActiveTab('IMAGE')}>
+                 <span>IMAGE</span>
+                 <span className="btn-arrow-icon">→</span>
+               </button>
             </div>
           </div>
         )}
 
         {activeTab === 'IMAGE' && (
           <div className="image-dashboard fade-in-up">
-            <header className="content-header mb-5" style={{ textAlign: 'center' }}>
-              <h1 style={{ fontWeight: 800, fontSize: '2.5rem', textTransform: 'uppercase' }}>
+            <div className="image-ambient-glow"></div>
+
+            <header className="image-header">
+              <div className="image-tag-badge">
+                <span className="benchmark-tag-dot" style={{ background: '#38bdf8', boxShadow: '0 0 8px #38bdf8' }}></span>
+                <span>AI Vision Analysis • Headshot Verification</span>
+              </div>
+              <h1 className="image-title">
                 <span className="gradient-text">FORMAL IMAGE CHECKING</span>
               </h1>
             </header>
 
             {error && <div className="error-banner" style={{ marginBottom: '2rem', width: '100%' }}>{error}</div>}
 
-
             {!imageResult ? (
-              <div className="dashboard-grid two-columns">
-                <div className="glass-panel d-col-left" style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+              <div className="dashboard-grid two-columns" style={{ position: 'relative', zIndex: 1 }}>
+                <div className="image-studio-left">
                   <div>
-                    <h2 className="image-checking-title">
-                      Formal Resume Image Checking
-                    </h2>
-                    <div style={{ display: 'flex', gap: '1rem' }}>
-                      <div className="image-example-box">
-                        <img src="/formal image Man.jpg" alt="Formal Man" style={{ width: '100%', height: 'auto', borderRadius: '0.5rem', objectFit: 'cover' }} />
+                    <div className="image-section-header">
+                      <h2 className="image-checking-title">
+                        <span>📸</span> Formal Resume Image Checking
+                      </h2>
+                      <span className="portrait-verified-pill">Official Standard</span>
+                    </div>
+
+                    <div className="image-portraits-row">
+                      <div className="image-portrait-card">
+                        <img src="/formal image Man.jpg" alt="Formal Man" className="portrait-inner-img" />
+                        <div className="portrait-card-badge">
+                          <span>✓</span> Reference Standard
+                        </div>
                       </div>
-                      <div className="image-example-box">
-                        <img src="/formal image Woman.png" alt="Formal Woman" style={{ width: '100%', height: 'auto', borderRadius: '0.5rem', objectFit: 'cover' }} />
+                      <div className="image-portrait-card">
+                        <img src="/formal image Woman.png" alt="Formal Woman" className="portrait-inner-img" />
+                        <div className="portrait-card-badge">
+                          <span>✓</span> Reference Standard
+                        </div>
                       </div>
                     </div>
                   </div>
                   
-                  <div>
-                    <h3 className="image-tips-title">
-                      Example & Tips
-                    </h3>
-                    <ul className="scan-list image-tips-list" style={{ gap: '0.75rem' }}>
-                      <li className="scan-item"><strong>Corporate Attire:</strong> Wear clean, professional business clothing matching your industry.</li>
-                      <li className="scan-item"><strong>Direct Gaze:</strong> Look straight into the camera lens to build instant trust.</li>
-                      <li className="scan-item"><strong>Genuine Smile:</strong> Maintain a warm, pleasant, approachable facial expression.</li>
-                      <li className="scan-item"><strong>Neutral Backdrop:</strong> Use a solid white, light grey, or soft blue background.</li>
-                      <li className="scan-item"><strong>Chest-Up Crop:</strong> Frame the shot from your mid-chest to just above your head.</li>
-                      <li className="scan-item"><strong>High Resolution:</strong> Ensure the file is crisp, sharp, and perfectly focused.</li>
-                      <li className="scan-item"><strong>Natural Lighting:</strong> Eliminate shadows across your face using soft, even light.</li>
-                      <li className="scan-item"><strong>Clean Grooming:</strong> Keep hair neat and makeup or facial hair tidy.</li>
-                      <li className="scan-item"><strong>No Filters:</strong> Avoid visible mobile editing effects or distracting digital touch-ups.</li>
+                  <div className="image-tips-section">
+                    <div className="image-tips-header-row">
+                      <h3 className="image-tips-title">
+                        <span>✨</span> Example & Tips
+                      </h3>
+                    </div>
+                    <ul className="image-tips-grid">
+                      <li className="image-tip-card">
+                        <div className="tip-icon-box">👔</div>
+                        <div className="tip-content-text">
+                          <strong>Corporate Attire:</strong> Wear clean, professional business clothing matching your industry.
+                        </div>
+                      </li>
+                      <li className="image-tip-card">
+                        <div className="tip-icon-box">👁️</div>
+                        <div className="tip-content-text">
+                          <strong>Direct Gaze:</strong> Look straight into the camera lens to build instant trust.
+                        </div>
+                      </li>
+                      <li className="image-tip-card">
+                        <div className="tip-icon-box">😊</div>
+                        <div className="tip-content-text">
+                          <strong>Genuine Smile:</strong> Maintain a warm, pleasant, approachable facial expression.
+                        </div>
+                      </li>
+                      <li className="image-tip-card">
+                        <div className="tip-icon-box">🖼️</div>
+                        <div className="tip-content-text">
+                          <strong>Neutral Backdrop:</strong> Use a solid white, light grey, or soft blue background.
+                        </div>
+                      </li>
+                      <li className="image-tip-card">
+                        <div className="tip-icon-box">📐</div>
+                        <div className="tip-content-text">
+                          <strong>Chest-Up Crop:</strong> Frame the shot from your mid-chest to just above your head.
+                        </div>
+                      </li>
+                      <li className="image-tip-card">
+                        <div className="tip-icon-box">🔍</div>
+                        <div className="tip-content-text">
+                          <strong>High Resolution:</strong> Ensure the file is crisp, sharp, and perfectly focused.
+                        </div>
+                      </li>
+                      <li className="image-tip-card">
+                        <div className="tip-icon-box">💡</div>
+                        <div className="tip-content-text">
+                          <strong>Natural Lighting:</strong> Eliminate shadows across your face using soft, even light.
+                        </div>
+                      </li>
+                      <li className="image-tip-card">
+                        <div className="tip-icon-box">✂️</div>
+                        <div className="tip-content-text">
+                          <strong>Clean Grooming:</strong> Keep hair neat and makeup or facial hair tidy.
+                        </div>
+                      </li>
+                      <li className="image-tip-card">
+                        <div className="tip-icon-box">🚫</div>
+                        <div className="tip-content-text">
+                          <strong>No Filters:</strong> Avoid visible mobile editing effects or distracting digital touch-ups.
+                        </div>
+                      </li>
                     </ul>
                   </div>
                 </div>
 
-                <div className="glass-panel d-col-right" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
-                  <div className="upload-zone" style={{ minHeight: '300px', width: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', position: 'relative' }}>
+                <div className="image-studio-right">
+                  <div className="biometric-viewfinder-zone">
+                    {/* Futuristic Viewfinder Corners */}
+                    <span className="reticle-corner corner-tl"></span>
+                    <span className="reticle-corner corner-tr"></span>
+                    <span className="reticle-corner corner-bl"></span>
+                    <span className="reticle-corner corner-br"></span>
+
+                    {/* Animated Scanning Beam */}
+                    <div className="biometric-scan-laser"></div>
+
                     <input 
                       type="file" 
                       accept="image/*" 
                       onChange={handleImageChange} 
                       className="file-input"
                       id="image-upload"
-                      style={{ zIndex: 2 }}
+                      style={{ zIndex: 10 }}
                     />
                     {imagePreview ? (
-                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative', zIndex: 1 }}>
-                        <img src={imagePreview} alt="Preview" style={{ maxWidth: '220px', maxHeight: '220px', borderRadius: '0.5rem', objectFit: 'cover', border: '2px solid #3b82f6', marginBottom: '1rem' }} />
-                        <p style={{ color: '#94a3b8', fontSize: '0.9rem' }}>Click or drag to change image</p>
+                      <div className="image-preview-frame">
+                        <div className="preview-reticle-box">
+                          <img src={imagePreview} alt="Preview" className="preview-inner-photo" />
+                        </div>
+                        <p className="preview-change-hint">
+                          <span>🔄</span> Click or drag to change image
+                        </p>
                       </div>
                     ) : (
-                      <label htmlFor="image-upload" className="upload-label" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', cursor: 'pointer' }}>
-                        <div className="upload-icon" style={{ fontSize: '4rem', color: '#60a5fa' }}>↑</div>
-                        <div className="upload-text" style={{ fontSize: '1rem', marginTop: '1rem' }}>Upload your image here</div>
+                      <label htmlFor="image-upload" className="upload-label" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', cursor: 'pointer', zIndex: 2 }}>
+                        <div className="upload-icon-pulse">↑</div>
+                        <div className="upload-text-lead">Upload your image here</div>
+                        <p className="upload-text-sub">Supports JPG, PNG or WEBP high-resolution portraits</p>
                       </label>
                     )}
                   </div>
                   
                   {imagePreview && (
                     <button 
-                      className="btn-analyze" 
+                      className="btn-analyze-biometric" 
                       onClick={handleImageUpload} 
                       disabled={isAnalyzingImage}
-                      style={{ marginTop: '1.5rem', width: '100%' }}
                     >
-                      {isAnalyzingImage ? "ANALYZING..." : "ANALYZE IMAGE"}
+                      {isAnalyzingImage ? (
+                        <>
+                          <span style={{ display: 'inline-block', width: '18px', height: '18px', border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#ffffff', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }}></span>
+                          <span>ANALYZING...</span>
+                        </>
+                      ) : (
+                        <>
+                          <span>ANALYZE IMAGE</span>
+                          <span style={{ fontSize: '1.2rem' }}>⚡</span>
+                        </>
+                      )}
                     </button>
                   )}
                 </div>
               </div>
             ) : (
-              <div className="dashboard-grid two-columns">
-                <div className="glass-panel flex-col-center">
-                   <h3 className="section-title">Analysis Result</h3>
-                   <img src={imagePreview} alt="Uploaded" style={{ width: '200px', height: '200px', borderRadius: '50%', objectFit: 'cover', border: '4px solid #3b82f6', marginBottom: '1.5rem' }} />
+              <div className="dashboard-grid two-columns" style={{ position: 'relative', zIndex: 1 }}>
+                <div className="image-result-left-panel">
+                   <h3 className="section-title" style={{ marginBottom: '1.5rem', textAlign: 'center' }}>Analysis Result</h3>
                    
-                   <div className="score-circle mb-4" style={{ 
-                     width: '120px', height: '120px', borderRadius: '50%', 
-                     display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-                     background: imageResult.score >= 80 ? 'rgba(16, 185, 129, 0.1)' : 'rgba(251, 191, 36, 0.1)',
-                     border: `4px solid ${imageResult.score >= 80 ? '#10b981' : '#fbbf24'}`
-                   }}>
-                     <span style={{ fontSize: '2.5rem', fontWeight: 800, color: imageResult.score >= 80 ? '#10b981' : '#fbbf24' }}>
+                   <div className="result-photo-ring-wrap">
+                     <img 
+                       src={imagePreview} 
+                       alt="Uploaded" 
+                       className={`result-photo-circle ${imageResult.score >= 70 ? 'pass-ring' : 'fail-ring'}`} 
+                     />
+                   </div>
+                   
+                   <div className={`result-score-gauge ${imageResult.score >= 80 ? 'gauge-pass' : 'gauge-fail'}`}>
+                     <span className="gauge-score-num">
                        {imageResult.score}
                      </span>
-                     <span style={{ fontSize: '0.8rem', color: '#94a3b8', textTransform: 'uppercase' }}>Score</span>
+                     <span className="gauge-score-label">Score</span>
                    </div>
 
-                   <div style={{
-                      margin: '1rem 0 1.5rem 0',
-                      padding: '0.85rem 1.25rem',
-                      borderRadius: '0.5rem',
-                      textAlign: 'center',
-                      fontWeight: '600',
-                      fontSize: '1rem',
-                      width: '100%',
-                      background: imageResult.score >= 70 ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)',
-                      color: imageResult.score >= 70 ? '#34d399' : '#f87171',
-                      border: `1px solid ${imageResult.score >= 70 ? '#10b981' : '#ef4444'}`
-                    }}>
+                   <div className={`result-verdict-pill ${imageResult.score >= 70 ? 'verdict-pill-pass' : 'verdict-pill-fail'}`}>
                       {imageResult.score >= 70 
                         ? "Congratulations! You have successfully passed the image formality check." 
                         : "Your image does not meet the required formality standards. Try using the suggested tips below to enhance your photo and boost your score."}
                     </div>
 
-                   <p style={{ textAlign: 'center', color: '#cbd5e1', fontSize: '1.05rem', lineHeight: '1.6', marginBottom: '1.5rem' }}>
-                     {imageResult.reasoning}
-                   </p>
+                   <div className="result-reasoning-box">
+                     <p className="result-reasoning-text">
+                       {imageResult.reasoning}
+                     </p>
+                   </div>
                    
-                   <div style={{ width: '100%', background: 'rgba(59, 130, 246, 0.1)', borderLeft: '4px solid #3b82f6', padding: '1rem', borderRadius: '0 0.5rem 0.5rem 0' }}>
-                     <h4 style={{ color: '#60a5fa', marginBottom: '0.5rem', fontSize: '0.9rem', textTransform: 'uppercase' }}>Pro Tip for Enhancement</h4>
+                   <div className="result-tips-callout">
+                     <h4 className="tips-callout-heading">
+                       <span>💡</span> Pro Tip for Enhancement
+                     </h4>
                      {imageResult.improvementTips.map((tip, idx) => (
-                       <p key={idx} style={{ color: '#e2e8f0', fontSize: '0.95rem' }}>{tip}</p>
+                       <p key={idx} className="tips-callout-bullet">{tip}</p>
                      ))}
                    </div>
                 </div>
 
-                <div className="glass-panel" style={{ padding: '2.5rem' }}>
+                <div className="image-result-right-panel">
                   <h3 className="section-title text-left mb-4">Criteria Breakdown</h3>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                  <div className="criteria-list-container">
                     {imageResult.feedback.map((item, idx) => (
-                      <div key={idx} style={{ display: 'flex', gap: '1rem', paddingBottom: '1rem', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                        <div style={{ fontSize: '1.5rem' }}>
+                      <div key={idx} className="criteria-row-card">
+                        <div className="criteria-status-icon">
                           {item.passed ? '✅' : '⚠️'}
                         </div>
-                        <div>
-                          <h4 style={{ color: item.passed ? '#f8fafc' : '#fbbf24', fontSize: '1rem', marginBottom: '0.25rem' }}>
+                        <div className="criteria-info-wrap">
+                          <h4 className={`criteria-tip-title ${item.passed ? 'title-pass' : 'title-warn'}`}>
                             {item.tip}
                           </h4>
-                          <p style={{ color: '#94a3b8', fontSize: '0.9rem' }}>
+                          <p className="criteria-detail-desc">
                             {item.detail}
                           </p>
                         </div>
@@ -2148,11 +2309,10 @@ function Dashboard({ onLogout, userId, theme = 'dark' }) {
                     ))}
                   </div>
                   <button 
-                    className="btn-action btn-targeted mt-5" 
+                    className="btn-check-another" 
                     onClick={() => { setImageResult(null); setImageFile(null); setImagePreview(null); }}
-                    style={{ width: '100%' }}
                   >
-                    Check Another Image
+                    <span>↺</span> Check Another Image
                   </button>
                 </div>
               </div>
