@@ -5245,7 +5245,7 @@ body.theme-light .preview-modal-title {
 }
 
 /* ═══════════════════════════════════════════
-   CAREER SELECTOR BIG CONTAINERS & GUIDES
+   CAREER SELECTOR BIG CONTAINERS & GUIDES (WOW FACTOR)
    ═══════════════════════════════════════════ */
 
 .career-selector-cards-grid {
@@ -5261,104 +5261,317 @@ body.theme-light .preview-modal-title {
 @media (max-width: 1080px) {
   .career-selector-cards-grid {
     grid-template-columns: 1fr;
+    gap: 2rem;
   }
 }
 
 .career-hero-card {
-  border-radius: 28px;
+  border-radius: 30px;
   padding: 2.5rem 2.25rem 2.25rem;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   position: relative;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  box-shadow: 0 25px 60px -10px rgba(0, 0, 0, 0.6);
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
   overflow: hidden;
   text-align: left;
+  backdrop-filter: blur(12px);
 }
 
 .career-hero-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 25px 65px rgba(0, 0, 0, 0.6);
+  transform: translateY(-5px);
+  box-shadow: 0 35px 80px -15px rgba(0, 0, 0, 0.75);
 }
 
-/* Card 1: Vibrant Royal Blue */
+/* Ambient Radial Backlights */
+.career-card-ambient-glow {
+  position: absolute;
+  top: -120px;
+  right: -120px;
+  width: 320px;
+  height: 320px;
+  border-radius: 50%;
+  pointer-events: none;
+  filter: blur(60px);
+  opacity: 0.45;
+  transition: opacity 0.4s ease;
+}
+
+.career-card-targeted .career-card-ambient-glow {
+  background: radial-gradient(circle, #38bdf8 0%, rgba(56, 189, 248, 0) 70%);
+}
+
+.career-card-discovery .career-card-ambient-glow {
+  background: radial-gradient(circle, #c084fc 0%, rgba(192, 132, 252, 0) 70%);
+}
+
+.career-hero-card:hover .career-card-ambient-glow {
+  opacity: 0.7;
+}
+
+/* Card 1: Volumetric Electric Royal Blue */
 .career-card-targeted {
-  background: #0052cc;
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: linear-gradient(155deg, #0a40a8 0%, #004ecc 40%, #003399 100%);
+  border: 1px solid rgba(147, 197, 253, 0.35);
+  box-shadow: 0 20px 50px -10px rgba(0, 78, 204, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.25);
 }
 
-/* Card 2: Deep Purple */
+.career-card-targeted:hover {
+  border-color: rgba(191, 219, 254, 0.65);
+  box-shadow: 0 30px 70px -15px rgba(0, 78, 204, 0.6), 0 0 35px rgba(56, 189, 248, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+/* Card 2: Volumetric Deep Royal Nebula Purple */
 .career-card-discovery {
-  background: #332054;
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: linear-gradient(155deg, #321959 0%, #401b73 40%, #220b3d 100%);
+  border: 1px solid rgba(192, 132, 252, 0.35);
+  box-shadow: 0 20px 50px -10px rgba(64, 27, 115, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+
+.career-card-discovery:hover {
+  border-color: rgba(233, 213, 255, 0.65);
+  box-shadow: 0 30px 70px -15px rgba(64, 27, 115, 0.7), 0 0 35px rgba(192, 132, 252, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+/* Header Badges */
+.career-badge-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.9rem;
+}
+
+.career-mode-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0.3rem 0.75rem;
+  border-radius: 999px;
+}
+
+.targeted-badge {
+  background: rgba(14, 165, 233, 0.25);
+  color: #bae6fd;
+  border: 1px solid rgba(125, 211, 252, 0.4);
+}
+
+.discovery-badge {
+  background: rgba(168, 85, 247, 0.25);
+  color: #e9d5ff;
+  border: 1px solid rgba(216, 180, 254, 0.4);
+}
+
+.badge-glow-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  animation: pulseGlow 1.8s infinite;
+}
+
+.targeted-badge .badge-glow-dot {
+  background: #38bdf8;
+  box-shadow: 0 0 8px #38bdf8;
+}
+
+.discovery-badge .badge-glow-dot {
+  background: #c084fc;
+  box-shadow: 0 0 8px #c084fc;
+}
+
+.career-badge-tag {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.75);
+  background: rgba(0, 0, 0, 0.2);
+  padding: 0.25rem 0.55rem;
+  border-radius: 6px;
 }
 
 .career-hero-title {
-  font-size: 1.85rem;
+  font-size: 2.1rem;
   font-weight: 800;
   color: #ffffff;
   margin: 0 0 0.85rem 0;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.025em;
+  line-height: 1.15;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
 }
 
 .career-hero-desc {
-  font-size: 1.02rem;
+  font-size: 1.05rem;
   font-weight: 500;
-  line-height: 1.55;
+  line-height: 1.6;
   color: #ffffff;
   margin: 0 0 1.5rem 0;
-  opacity: 0.98;
+  opacity: 0.95;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
 }
 
+/* Glassmorphism Instructions Box */
 .career-instructions-box {
-  margin-bottom: 1.25rem;
+  background: rgba(0, 0, 0, 0.28);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 18px;
+  padding: 1.25rem 1.4rem;
+  margin-bottom: 1.5rem;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 8px 20px rgba(0, 0, 0, 0.25);
+}
+
+.career-instructions-header-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.instructions-icon {
+  font-size: 1rem;
 }
 
 .career-instructions-heading {
-  font-size: 1.02rem;
-  font-weight: 700;
+  font-size: 1.05rem;
+  font-weight: 800;
   color: #ffffff;
-  margin: 0 0 0.45rem 0;
+  margin: 0;
+  letter-spacing: -0.01em;
 }
 
 .career-instructions-list {
   margin: 0;
-  padding-left: 1.25rem;
-  color: #ffffff;
-  font-size: 0.95rem;
-  line-height: 1.65;
-  font-weight: 500;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
 }
 
 .career-instructions-list li {
-  margin-bottom: 0.2rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  color: #ffffff;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  font-weight: 500;
+}
+
+.step-num-pill {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 800;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.career-card-targeted .step-num-pill {
+  background: linear-gradient(135deg, #38bdf8, #2563eb);
+  color: #ffffff;
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.45);
+}
+
+.career-card-discovery .step-num-pill {
+  background: linear-gradient(135deg, #c084fc, #7c3aed);
+  color: #ffffff;
+  box-shadow: 0 0 10px rgba(192, 132, 252, 0.45);
+}
+
+.step-text {
+  flex: 1;
+}
+
+.career-instructions-note-pill {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-top: 0.85rem;
+  padding: 0.5rem 0.85rem;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px dashed rgba(255, 255, 255, 0.28);
+}
+
+.note-star {
+  font-size: 0.9rem;
 }
 
 .career-instructions-note {
-  font-size: 0.92rem;
-  font-weight: 500;
+  font-size: 0.88rem;
+  font-weight: 600;
   color: rgba(255, 255, 255, 0.95);
-  margin-top: 0.45rem;
-  margin-bottom: 0;
+  margin: 0;
+  line-height: 1.4;
 }
 
+/* Studio Window Image Wrapper */
 .career-hero-image-wrap {
   width: 100%;
-  border-radius: 12px;
+  border-radius: 16px;
   overflow: hidden;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 15px 35px -5px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.15);
   margin: 1.5rem 0 1.75rem 0;
+  background: #ffffff;
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.career-hero-card:hover .career-hero-image-wrap {
+  transform: translateY(-3px) scale(1.01);
+  box-shadow: 0 20px 45px -5px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.3);
+}
+
+.preview-window-bar {
+  display: flex;
+  align-items: center;
+  padding: 0.55rem 0.85rem;
+  background: rgba(15, 23, 42, 0.95);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  gap: 0.75rem;
+}
+
+.window-dots {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.w-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.w-dot.red { background: #ef4444; }
+.w-dot.yellow { background: #f59e0b; }
+.w-dot.green { background: #10b981; }
+
+.window-title {
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: #94a3b8;
+  letter-spacing: 0.02em;
+}
+
+.image-inner-container {
+  width: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
   background: #ffffff;
-  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.career-card-discovery .career-hero-image-wrap {
-  background: #1b122c;
-  border-color: rgba(255, 255, 255, 0.08);
+.career-card-discovery .image-inner-container {
+  background: #150d24;
 }
 
 .career-hero-image {
@@ -5368,53 +5581,90 @@ body.theme-light .preview-modal-title {
   object-fit: contain;
 }
 
+/* Elevated Spectacular CTA Buttons */
 .career-hero-btn-wrap {
   display: flex;
   justify-content: center;
   align-items: center;
   width: 100%;
   margin-top: auto;
-  padding-top: 0.75rem;
+  padding-top: 0.85rem;
 }
 
 .career-hero-btn {
-  background: #8ebdf2;
-  color: #000000;
-  font-size: 1.25rem;
-  font-weight: 700;
+  background: linear-gradient(135deg, #bfe0ff 0%, #8ebdf2 45%, #7aaef0 100%);
+  color: #07152b;
+  font-size: 1.22rem;
+  font-weight: 800;
   padding: 0.95rem 2.8rem;
-  border-radius: 6px;
+  border-radius: 8px;
   border: none;
   cursor: pointer;
-  transition: all 0.25s ease;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
-  min-width: 290px;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.35), 0 0 20px rgba(142, 189, 242, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  min-width: 300px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 0.6rem;
   font-family: 'Inter', sans-serif;
+  letter-spacing: -0.01em;
+  position: relative;
+  overflow: hidden;
+}
+
+.career-hero-btn::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.5), transparent);
+  transform: skewX(-20deg);
+  transition: left 0.6s ease;
+}
+
+.career-hero-btn:hover:not(:disabled)::after {
+  left: 150%;
 }
 
 .career-hero-btn:hover:not(:disabled) {
-  background: #a5cefc;
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  background: linear-gradient(135deg, #d4ebff 0%, #a4cdfa 45%, #8dbdf7 100%);
+  transform: translateY(-3px);
+  box-shadow: 0 14px 35px rgba(0, 0, 0, 0.4), 0 0 30px rgba(142, 189, 242, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+.career-hero-btn:active:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.btn-arrow-icon {
+  font-size: 1.25rem;
+  font-weight: 800;
+  transition: transform 0.25s ease;
+}
+
+.career-hero-btn:hover:not(:disabled) .btn-arrow-icon {
+  transform: translateX(4px);
 }
 
 .career-hero-btn:disabled {
-  opacity: 0.65;
+  opacity: 0.7;
   cursor: not-allowed;
+  filter: grayscale(0.2);
 }
 
-/* Light Mode Consistency */
+/* Light Theme Consistency */
 body.theme-light .career-card-targeted {
-  background: #0052cc;
+  background: linear-gradient(155deg, #094ecc 0%, #0040a8 100%);
   box-shadow: 0 20px 45px rgba(0, 82, 204, 0.25);
 }
 
 body.theme-light .career-card-discovery {
-  background: #332054;
+  background: linear-gradient(155deg, #441c7a 0%, #2f1254 100%);
   box-shadow: 0 20px 45px rgba(51, 32, 84, 0.25);
 }
+
 
 
