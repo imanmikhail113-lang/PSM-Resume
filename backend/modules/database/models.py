@@ -33,6 +33,9 @@ class ResumeAnalysis(db.Model):
         super().__init__(**kwargs)
 
     def to_dict(self):
+        thumb = None
+        if isinstance(self.parsed_data, dict):
+            thumb = self.parsed_data.get('thumbnail')
         return {
             'id': self.id,
             'user_id': self.user_id,
@@ -40,6 +43,7 @@ class ResumeAnalysis(db.Model):
             'parsed_data': self.parsed_data,
             'parsed_method': self.parsed_method,
             'ats_score': self.ats_score,
+            'thumbnail': thumb,
             'created_at': self.created_at.isoformat() if self.created_at else None
         }
 
