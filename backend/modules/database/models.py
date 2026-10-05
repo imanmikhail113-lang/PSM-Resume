@@ -88,6 +88,9 @@ class UserImage(db.Model):
         super().__init__(**kwargs)
 
     def to_dict(self):
+        thumb = None
+        if isinstance(self.feedback_data, dict):
+            thumb = self.feedback_data.get('thumbnail')
         return {
             'id': self.id,
             'user_id': self.user_id,
@@ -96,6 +99,7 @@ class UserImage(db.Model):
             'score': self.score,
             'reasoning': self.reasoning,
             'feedback_data': self.feedback_data,
+            'thumbnail': thumb,
             'created_at': self.created_at.isoformat() if self.created_at else None
         }
 
