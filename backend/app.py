@@ -556,13 +556,15 @@ def get_latest_analysis(user_id):
         "status": "success",
         "data": {
             "id": latest.id,
+            "filename": latest.filename,
             "parsed_content": latest.parsed_data,
             "parsed_method": latest.parsed_method,
             "extracted_text": latest.raw_text,
             "semantic_score": 0,
             "ats_parseability": len(latest.raw_text or "") > 0,
             "missing_keywords": [],
-            "visual_professionalism": "pending"
+            "visual_professionalism": "pending",
+            "thumbnail": latest.parsed_data.get('thumbnail') if isinstance(latest.parsed_data, dict) else None
         }
     })
 
@@ -747,7 +749,20 @@ def analyze_resume():
                 "ats_score": 60, # Standard fallback score
                 "action_verbs_count": 0
             }
-            parsed_method = "heuristic_fallback"
+        # Generate thumbnail of first page if PDF
+        try:
+            import fitz
+            import base64
+            doc = fitz.open(stream=file_bytes, filetype="pdf")
+            if len(doc) > 0:
+                page = doc[0]
+                pix = page.get_pixmap(dpi=110)
+                thumb_bytes = pix.tobytes("png")
+                thumb_b64 = "data:image/png;base64," + base64.b64encode(thumb_bytes).decode('utf-8')
+                if isinstance(structured_data, dict):
+                    structured_data['thumbnail'] = thumb_b64
+        except Exception as thumb_err:
+            print(f"Thumbnail generation note: {thumb_err}")
 
         # Save to database
         try:
