@@ -544,6 +544,18 @@ def get_history(user_id):
         "data": [a.to_dict() for a in analyses]
     })
 
+@app.route('/api/history/images/<int:user_id>', methods=['GET'])
+def get_image_history(user_id):
+    try:
+        images = UserImage.query.filter_by(user_id=user_id).order_by(UserImage.score.desc()).all()
+        return jsonify({
+            "status": "success",
+            "data": [img.to_dict() for img in images]
+        })
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
 @app.route('/api/latest-analysis/<int:user_id>', methods=['GET'])
 def get_latest_analysis(user_id):
     latest = ResumeAnalysis.query.filter_by(user_id=user_id).order_by(ResumeAnalysis.created_at.desc()).first()
