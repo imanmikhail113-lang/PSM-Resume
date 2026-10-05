@@ -8,8 +8,51 @@ function Login({ onLoginSuccess }) {
   const [success, setSuccess] = useState(null);
   const [loading, setLoading] = useState(false);
   const [showChooserModal, setShowChooserModal] = useState(false);
-  const [customGoogleEmail, setCustomGoogleEmail] = useState('');
-  const [customGoogleName, setCustomGoogleName] = useState('');
+
+  // Accounts recognized in this browser
+  const [browserAccounts, setBrowserAccounts] = useState(() => {
+    const defaultAccounts = [
+      {
+        name: 'Iman Mikhail',
+        email: 'imanmikhail113@gmail.com',
+        avatar: 'IM',
+        bg: 'linear-gradient(135deg, #4285F4, #34A853)'
+      },
+      {
+        name: 'Mikhail (UTHM Siswa)',
+        email: 'mikhail@siswa.uthm.edu.my',
+        avatar: 'U',
+        bg: 'linear-gradient(135deg, #0d1b54, #3b82f6)'
+      }
+    ];
+
+    try {
+      const saved = JSON.parse(localStorage.getItem('saved_google_accounts') || '[]');
+      const lastEmail = localStorage.getItem('user_email');
+      const lastUsername = localStorage.getItem('user_username');
+      const lastAvatar = localStorage.getItem('user_avatar');
+
+      const combined = [...defaultAccounts];
+      saved.forEach((acc) => {
+        if (acc?.email && !combined.some((c) => c.email.toLowerCase() === acc.email.toLowerCase())) {
+          combined.push(acc);
+        }
+      });
+
+      if (lastEmail && !combined.some((c) => c.email.toLowerCase() === lastEmail.toLowerCase())) {
+        combined.push({
+          name: lastUsername || lastEmail.split('@')[0],
+          email: lastEmail,
+          avatar: (lastUsername || lastEmail).slice(0, 2).toUpperCase(),
+          picture: lastAvatar,
+          bg: 'linear-gradient(135deg, #8b5cf6, #3b82f6)'
+        });
+      }
+      return combined;
+    } catch (e) {
+      return defaultAccounts;
+    }
+  });
 
   // ═══════════════════════════════════════════════════════════════════════════
   // INTERACTIVE GEOMETRIC BACKGROUND CONTROLS (Removed for public)
@@ -584,6 +627,26 @@ export default function ResumeGeometryBackground({
         if (data.picture) {
           localStorage.setItem('user_avatar', data.picture);
         }
+
+        try {
+          const saved = JSON.parse(localStorage.getItem('saved_google_accounts') || '[]');
+          if (data.email && !saved.some((acc) => acc?.email?.toLowerCase() === data.email.toLowerCase())) {
+            const newAcc = {
+              name: data.username || data.email.split('@')[0],
+              email: data.email,
+              avatar: (data.username || data.email).slice(0, 2).toUpperCase(),
+              picture: data.picture,
+              bg: 'linear-gradient(135deg, #8b5cf6, #3b82f6)',
+            };
+            saved.push(newAcc);
+            localStorage.setItem('saved_google_accounts', JSON.stringify(saved));
+            setBrowserAccounts((prev) => {
+              if (prev.some((p) => p?.email?.toLowerCase() === data.email.toLowerCase())) return prev;
+              return [...prev, newAcc];
+            });
+          }
+        } catch (e) {}
+
         setShowChooserModal(false);
         setTimeout(() => {
           onLoginSuccess(data.user_id);
@@ -746,55 +809,31 @@ export default function ResumeGeometryBackground({
             </div>
 
             <div className="google-accounts-list">
-              <button
-                type="button"
-                className="google-account-btn"
-                onClick={() => handleGoogleAuth({ email: 'imanmikhail113@gmail.com', name: 'Iman Mikhail' })}
-                disabled={loading}
-              >
-                <div className="google-account-avatar">IM</div>
-                <div className="google-account-meta">
-                  <span className="google-account-name">Iman Mikhail</span>
-                  <span className="google-account-email">imanmikhail113@gmail.com</span>
-                </div>
-              </button>
-
-              <button
-                type="button"
-                className="google-account-btn"
-                onClick={() => handleGoogleAuth({ email: 'mikhail@siswa.uthm.edu.my', name: 'Mikhail (UTHM Student)' })}
-                disabled={loading}
-              >
-                <div className="google-account-avatar" style={{ background: 'linear-gradient(135deg, #0d1b54, #3b82f6)' }}>U</div>
-                <div className="google-account-meta">
-                  <span className="google-account-name">Mikhail (UTHM Siswa)</span>
-                  <span className="google-account-email">mikhail@siswa.uthm.edu.my</span>
-                </div>
-              </button>
-            </div>
-
-            <div className="google-custom-entry">
-              <label style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '0.4rem' }}>
-                Or use another Google account:
-              </label>
-              <form onSubmit={(e) => {
-                e.preventDefault();
-                if (customGoogleEmail) {
-                  handleGoogleAuth({ email: customGoogleEmail, name: customGoogleName || customGoogleEmail.split('@')[0] });
-                }
-              }}>
-                <input
-                  type="email"
-                  className="google-custom-input"
-                  placeholder="e.g. name@gmail.com or @siswa.uthm.edu.my"
-                  value={customGoogleEmail}
-                  onChange={(e) => setCustomGoogleEmail(e.target.value)}
-                  required
-                />
-                <button type="submit" className="google-custom-submit" disabled={loading || !customGoogleEmail}>
-                  {loading ? 'Signing in with Google...' : 'Continue with this Google Account'}
+              {browserAccounts.map((account) => (
+                <button
+                  key={account.email}
+                  type="button"
+                  className="google-account-btn"
+                  onClick={() => handleGoogleAuth({ email: account.email, name: account.name, picture: account.picture })}
+                  disabled={loading}
+                >
+                  <div className="google-account-avatar" style={account.bg ? { background: account.bg } : {}}>
+                    {account.picture ? (
+                      <img
+                        src={account.picture}
+                        alt={account.name}
+                        style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }}
+                      />
+                    ) : (
+                      account.avatar || account.name.slice(0, 2).toUpperCase()
+                    )}
+                  </div>
+                  <div className="google-account-meta">
+                    <span className="google-account-name">{account.name}</span>
+                    <span className="google-account-email">{account.email}</span>
+                  </div>
                 </button>
-              </form>
+              ))}
             </div>
           </div>
         </div>
