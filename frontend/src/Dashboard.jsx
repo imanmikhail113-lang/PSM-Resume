@@ -1590,46 +1590,82 @@ function Dashboard({ onLogout, userId, theme = 'dark' }) {
               <p className="career-selector-desc">Select matching analysis mode for your current resume.</p>
             </header>
 
-            <div className="discovery-cards-grid">
+            <div className="career-selector-cards-grid">
               {/* Card 1: Targeted Scan */}
-              <div className="discovery-card card-primary" style={{ minHeight: '380px', justifyContent: 'space-between' }}>
-                <div>
-                  <div className="card-icon-wrapper mb-3">
-                    <span className="card-icon">🎯</span>
-                  </div>
-                  <h3 className="card-title">Targeted Scan</h3>
-                  <p className="card-subtitle mb-4" style={{ marginTop: '0.5rem', lineHeight: '1.5', fontSize: '0.95rem' }}>
+              <div className="career-hero-card career-card-targeted">
+                <div className="career-hero-content">
+                  <h2 className="career-hero-title">Targeted Scan</h2>
+                  <p className="career-hero-desc">
                     Match your resume against a specific job role and description. Get a semantic compatibility score, identify missing critical keywords, and receive tailored improvement advice.
                   </p>
+
+                  <div className="career-instructions-box">
+                    <h4 className="career-instructions-heading">How to use:</h4>
+                    <ol className="career-instructions-list">
+                      <li>Go to any Job finding website (example Jobstreet)</li>
+                      <li>Click on the Start Targeted Scan Button</li>
+                      <li>Copy the Job title and paste it in the given column</li>
+                      <li>Copy the Job Description and paste it in the given column</li>
+                    </ol>
+                    <p className="career-instructions-note">
+                      Notes: more job description given give more accurate score
+                    </p>
+                  </div>
+
+                  <div className="career-hero-image-wrap">
+                    <img 
+                      src="/targetedscan.png" 
+                      alt="Targeted Scan Example" 
+                      className="career-hero-image" 
+                    />
+                  </div>
                 </div>
-                <button 
-                  className="btn-action btn-targeted" 
-                  style={{ width: '100%', margin: 0, background: '#ffffff', color: '#0d1b54', fontWeight: 'bold' }}
-                  onClick={() => setShowTargetedModal(true)}
-                >
-                  Start Targeted Scan
-                </button>
+
+                <div className="career-hero-btn-wrap">
+                  <button 
+                    className="career-hero-btn" 
+                    onClick={() => setShowTargetedModal(true)}
+                  >
+                    Start Targeted Scan
+                  </button>
+                </div>
               </div>
 
               {/* Card 2: Discovery Scan */}
-              <div className="discovery-card card-tertiary" style={{ minHeight: '380px', justifyContent: 'space-between' }}>
-                <div>
-                  <div className="card-icon-wrapper mb-3">
-                    <span className="card-icon">🔍</span>
-                  </div>
-                  <h3 className="card-title">Discovery Scan</h3>
-                  <p className="card-subtitle mb-4" style={{ marginTop: '0.5rem', lineHeight: '1.5', fontSize: '0.95rem' }}>
+              <div className="career-hero-card career-card-discovery">
+                <div className="career-hero-content">
+                  <h2 className="career-hero-title">Discovery Scan</h2>
+                  <p className="career-hero-desc">
                     Let AI analyze your resume to automatically match you with different job roles (e.g. Data Analyst, ML Engineer, Full-Stack Dev). Highlights skill gaps and provides additions for your resume.
                   </p>
+
+                  <div className="career-instructions-box">
+                    <h4 className="career-instructions-heading">How to use:</h4>
+                    <ol className="career-instructions-list">
+                      <li>Click on the Start Discovery Button</li>
+                      <li>The system will use your resume highlights the keyword for semantic score match</li>
+                      <li>The system will shows top 3 most relevant jobs related to your resume</li>
+                    </ol>
+                  </div>
+
+                  <div className="career-hero-image-wrap">
+                    <img 
+                      src="/discoveryscan.png" 
+                      alt="Discovery Scan Example" 
+                      className="career-hero-image" 
+                    />
+                  </div>
                 </div>
-                <button 
-                  className="btn-action btn-targeted" 
-                  style={{ width: '100%', margin: 0, background: '#ffffff', color: '#4c1d95', fontWeight: 'bold' }}
-                  onClick={handleDiscoveryScanSubmit}
-                  disabled={isAnalyzingDiscovery}
-                >
-                  {isAnalyzingDiscovery ? "Analyzing..." : "Start Discovery Scan"}
-                </button>
+
+                <div className="career-hero-btn-wrap">
+                  <button 
+                    className="career-hero-btn" 
+                    onClick={handleDiscoveryScanSubmit}
+                    disabled={isAnalyzingDiscovery}
+                  >
+                    {isAnalyzingDiscovery ? "Analyzing..." : "Start Discovery Scan"}
+                  </button>
+                </div>
               </div>
             </div>
           </div>
