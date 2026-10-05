@@ -6303,23 +6303,22 @@ body.theme-light .career-card-discovery {
   font-weight: 700;
 }
 
-/* Right Column: AI Biometric Dropzone & Viewfinder */
 .image-studio-right {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   background: rgba(15, 23, 42, 0.7);
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 20px;
-  padding: 2.25rem;
+  padding: 1.75rem;
   box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
 }
 
 .biometric-viewfinder-zone {
-  min-height: 380px;
+  min-height: 230px;
   width: 100%;
   display: flex;
   flex-direction: column;
@@ -6329,7 +6328,7 @@ body.theme-light .career-card-discovery {
   background: radial-gradient(circle, rgba(14, 165, 233, 0.05) 0%, rgba(15, 23, 42, 0.5) 100%);
   border: 2px dashed rgba(56, 189, 248, 0.3);
   border-radius: 18px;
-  padding: 2rem 1.5rem;
+  padding: 1.4rem 1.25rem;
   overflow: hidden;
   transition: all 0.35s ease;
 }
@@ -6845,6 +6844,97 @@ body.theme-light .result-reasoning-box {
 body.theme-light .result-reasoning-text {
   color: #334155;
 }
+
+/* ==========================================================================
+   TOP 3 IMAGE RANKING CARDS & THUMBNAILS (IMAGE PAGE)
+   ========================================================================== */
+
+.image-ranking-section {
+  width: 100%;
+  margin-top: 1.75rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.image-ranking-card {
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  padding: 0.75rem 0.9rem;
+}
+
+.image-ranking-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.45);
+}
+
+.ranking-image-thumb-wrap {
+  width: 50px;
+  height: 50px;
+  border-radius: 10px;
+  overflow: hidden;
+  position: relative;
+  flex-shrink: 0;
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  background: #0b1120;
+}
+
+.rank-card-gold .ranking-image-thumb-wrap {
+  border-color: rgba(245, 158, 11, 0.7);
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.35);
+}
+
+.rank-card-silver .ranking-image-thumb-wrap {
+  border-color: rgba(203, 213, 225, 0.6);
+  box-shadow: 0 0 8px rgba(203, 213, 225, 0.2);
+}
+
+.rank-card-bronze .ranking-image-thumb-wrap {
+  border-color: rgba(217, 119, 6, 0.5);
+}
+
+.ranking-image-thumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.3s ease;
+}
+
+.image-ranking-card:hover .ranking-image-thumb {
+  transform: scale(1.1);
+}
+
+.ranking-image-zoom-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.image-ranking-card:hover .ranking-image-zoom-overlay {
+  opacity: 1;
+}
+
+/* Light theme support */
+body.theme-light .image-ranking-section {
+  border-top-color: #e2e8f0;
+}
+
+body.theme-light .image-ranking-card {
+  background: #ffffff;
+  border-color: #e2e8f0;
+}
+
+body.theme-light .ranking-image-thumb-wrap {
+  border-color: #cbd5e1;
+}
+
 
 
 
