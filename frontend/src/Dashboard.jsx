@@ -42,7 +42,7 @@ const resolveImageUrl = (path) => {
 };
 
 function Dashboard({ onLogout, userId, theme = 'dark' }) {
-  const username = localStorage.getItem('user_username') || 'Mikhail';
+  const username = localStorage.getItem('user_username') || localStorage.getItem('user_email')?.split('@')[0] || 'User';
   const [activeTab, setActiveTab] = useState('USER HUB');
   const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -114,9 +114,12 @@ function Dashboard({ onLogout, userId, theme = 'dark' }) {
   };
 
   const fetchHistory = async () => {
-    if (!userId) return;
+    if (!userId) {
+      setHistoryList([]);
+      return;
+    }
     const data = await safeFetchJson(`${API_BASE_URL}/api/history/${userId}`);
-    if (data && data.data) {
+    if (data && Array.isArray(data.data) && data.data.length > 0) {
       setHistoryList(data.data);
       const sorted = data.data.slice().reverse(); // chronological
       const scores = sorted.map(r => r.ats_score || 0);
@@ -145,45 +148,93 @@ function Dashboard({ onLogout, userId, theme = 'dark' }) {
           tension: 0.4,
         }]
       });
+    } else {
+      setHistoryList([]);
+      setChartData({
+        labels: ['v1'],
+        datasets: [{
+          label: 'ATS Compatibility Score',
+          data: [0],
+          fill: true,
+          borderColor: '#3b82f6',
+          backgroundColor: 'rgba(59, 130, 246, 0.1)',
+          pointRadius: 4,
+          tension: 0.4,
+        }]
+      });
     }
   };
 
   const fetchLatestAnalysis = async () => {
-    if (!userId) return;
+    if (!userId) {
+      setResult(null);
+      setUserScore(0);
+      return;
+    }
     const data = await safeFetchJson(`${API_BASE_URL}/api/latest-analysis/${userId}`);
     if (data && data.data) {
       setResult(data.data);
       if (data.data.parsed_content?.ats_score) {
         setUserScore(data.data.parsed_content.ats_score);
       }
+    } else {
+      setResult(null);
+      setUserScore(0);
     }
   };
 
   const fetchLatestTargetedScan = async () => {
-    if (!userId) return;
+    if (!userId) {
+      setTargetedResult(null);
+      return;
+    }
     const data = await safeFetchJson(`${API_BASE_URL}/api/latest-targeted-scan/${userId}`);
     if (data && data.data) {
       setTargetedResult(data.data);
+    } else {
+      setTargetedResult(null);
     }
   };
 
   const fetchLatestDiscoveryScan = async () => {
-    if (!userId) return;
+    if (!userId) {
+      setDiscoveryResult(null);
+      return;
+    }
     const data = await safeFetchJson(`${API_BASE_URL}/api/latest-discovery-scan/${userId}`);
     if (data && data.data && data.data.results_data) {
       setDiscoveryResult(data.data.results_data);
+    } else {
+      setDiscoveryResult(null);
     }
   };
 
   const fetchImageHistory = async () => {
-    if (!userId) return;
+    if (!userId) {
+      setImageHistory([]);
+      return;
+    }
     const data = await safeFetchJson(`${API_BASE_URL}/api/history/images/${userId}`);
     if (data && Array.isArray(data.data)) {
       setImageHistory(data.data);
+    } else {
+      setImageHistory([]);
     }
   };
 
   useEffect(() => {
+    // Reset all user-specific state upon user ID change
+    setResult(null);
+    setFile(null);
+    setHistoryList([]);
+    setImageHistory([]);
+    setImageResult(null);
+    setImagePreview(null);
+    setImageFile(null);
+    setTargetedResult(null);
+    setDiscoveryResult(null);
+    setUserScore(0);
+
     fetchDbStatus();
     if (userId) {
       fetchHistory();
@@ -344,43 +395,7 @@ function Dashboard({ onLogout, userId, theme = 'dark' }) {
       }
     }
 
-    // Baseline sample if user has not yet uploaded resumes
-    if (list.length === 0) {
-      list = [
-        {
-          id: 'demo-1',
-          filename: 'RESUME_ImanMikhail_ DEGREE 2025 LATEST.pdf',
-          ats_score: 92,
-          created_at: new Date().toISOString(),
-          parsed_data: {
-            personal_info: { full_name: 'Iman Mikhail', email: 'imanmikhail113@gmail.com' },
-            skills: ['Python', 'SQL', 'NLP', 'React', 'FastAPI', 'Machine Learning'],
-          },
-        },
-        {
-          id: 'demo-2',
-          filename: 'RESUME 2026 IMAN MIKHAIL.pdf',
-          ats_score: 88,
-          created_at: new Date().toISOString(),
-          parsed_data: {
-            personal_info: { full_name: 'Iman Mikhail', email: 'imanmikhail113@gmail.com' },
-            skills: ['AI', 'C#', 'Unity 3D', 'Vuforia SDK', 'Information Technology'],
-          },
-        },
-        {
-          id: 'demo-3',
-          filename: 'resume-khairul.pdf',
-          ats_score: 82,
-          created_at: new Date().toISOString(),
-          parsed_data: {
-            personal_info: { full_name: 'Khairul', email: 'khairul@siswa.uthm.edu.my' },
-            skills: ['SQL', 'Database', 'Systems Analysis', 'Networking'],
-          },
-        },
-      ];
-    }
-
-    // Sort descending by ats_score
+    // Sort descending by ats_score (only real user scans)
     const sorted = [...list].sort((a, b) => (Number(b.ats_score) || 0) - (Number(a.ats_score) || 0));
 
     return sorted.slice(0, 3);
@@ -1451,133 +1466,145 @@ function Dashboard({ onLogout, userId, theme = 'dark' }) {
                   </div>
 
                   <div className="ranking-list">
-                    {topResumes.map((item, index) => {
-                      const rank = index + 1;
-                      const isTop1 = rank === 1;
-                      const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : '🥉';
-                      const rankClass = rank === 1 ? 'rank-card-gold' : rank === 2 ? 'rank-card-silver' : 'rank-card-bronze';
-                      const itemThumb = item?.thumbnail || item?.parsed_data?.thumbnail;
-
-                      return (
-                        <div key={item.id || index} className={`ranking-card ${rankClass} ${isTop1 ? 'ranking-card-top1' : ''}`}>
-                          {/* Card Header Row */}
-                          <div className="ranking-card-main">
-                            <div className="ranking-badge-col">
-                              <span className="ranking-medal">{medal}</span>
-                              <span className="ranking-rank-num">#{rank}</span>
-                            </div>
-
-                            <div className="ranking-info-col">
-                              <div className="ranking-filename-wrap">
-                                <span className="ranking-pdf-icon">📄</span>
-                                <span className="ranking-filename" title={item.filename}>
-                                  {item.filename}
-                                </span>
-                              </div>
-                              <div className="ranking-meta-sub">
-                                <span className="ranking-status-tag">
-                                  {rank === 1 ? 'Highest Performing' : rank === 2 ? 'Strong Match' : 'Passing Benchmark'}
-                                </span>
-                                {item.created_at && (
-                                  <span className="ranking-date">
-                                    • {new Date(item.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-
-                            <div className="ranking-score-col">
-                              <div className="ranking-score-badge">
-                                <span className="ranking-score-val">{item.ats_score || 0}%</span>
-                                <span className="ranking-score-lbl">ATS</span>
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* Top 1 ONLY: File Image Overview */}
-                          {isTop1 && (
-                            <div className="ranking-top1-overview-wrapper">
-                              <div className="overview-header-bar">
-                                <div className="overview-header-left">
-                                  <span className="overview-pulse-dot"></span>
-                                  <span className="overview-heading-text">TOP #1 FILE IMAGE OVERVIEW</span>
-                                </div>
-                                <span className="overview-top-tag">★ Leaderboard Winner</span>
-                              </div>
-
-                              <div 
-                                className="overview-preview-frame"
-                                onClick={() => setShowTop1PreviewModal(true)}
-                                role="button"
-                                tabIndex={0}
-                                title="Click to view expanded document overview"
-                              >
-                                {itemThumb ? (
-                                  <div className="overview-image-container">
-                                    <img 
-                                      src={itemThumb} 
-                                      alt={`Preview of ${item.filename}`} 
-                                      className="overview-real-img"
-                                    />
-                                    <div className="overview-zoom-hint">
-                                      <span>🔍 Click to expand preview</span>
-                                    </div>
-                                  </div>
-                                ) : (
-                                  <div className="overview-visual-document">
-                                    {/* Document Header */}
-                                    <div className="doc-preview-head">
-                                      <div className="doc-avatar-circle">
-                                        {(item.parsed_data?.personal_info?.full_name || username || 'IM').slice(0, 2).toUpperCase()}
-                                      </div>
-                                      <div className="doc-head-details">
-                                        <div className="doc-candidate-name">
-                                          {item.parsed_data?.personal_info?.full_name || username || 'Iman Mikhail'}
-                                        </div>
-                                        <div className="doc-candidate-sub">
-                                          {item.parsed_data?.personal_info?.email || 'Candidate Resume'} • ATS Validated
-                                        </div>
-                                      </div>
-                                      <div className="doc-head-badge">
-                                        <span>ATS {item.ats_score}%</span>
-                                      </div>
-                                    </div>
-
-                                    {/* Mini divider */}
-                                    <div className="doc-section-divider"></div>
-
-                                    {/* Core Skills extracted preview */}
-                                    <div className="doc-preview-section">
-                                      <span className="doc-sec-label">KEY SKILLS DETECTED</span>
-                                      <div className="doc-preview-chips">
-                                        {(item.parsed_data?.skills || ['Python', 'SQL', 'React', 'FastAPI', 'AI', 'NLP']).slice(0, 6).map((sk, sIdx) => (
-                                          <span key={sIdx} className="doc-mini-chip">{sk}</span>
-                                        ))}
-                                      </div>
-                                    </div>
-
-                                    {/* Layout silhouette lines representing document pages */}
-                                    <div className="doc-preview-section mt-2">
-                                      <span className="doc-sec-label">DOCUMENT LAYOUT MAPPING</span>
-                                      <div className="doc-silhouette-grid">
-                                        <div className="doc-line line-long"></div>
-                                        <div className="doc-line line-medium"></div>
-                                        <div className="doc-line line-short"></div>
-                                      </div>
-                                    </div>
-
-                                    <div className="doc-preview-footer">
-                                      <span className="doc-footer-status">✓ Multi-Column Structural Integrity Passed</span>
-                                      <span className="doc-footer-click">Click to Expand 🔍</span>
-                                    </div>
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          )}
+                    {topResumes.length === 0 ? (
+                      <div className="image-ranking-empty-card">
+                        <div className="empty-ranking-icon">📄</div>
+                        <div className="empty-ranking-content">
+                          <h4 className="empty-ranking-title">No Resumes Analyzed Yet</h4>
+                          <p className="empty-ranking-desc">
+                            Upload and scan your resume above. Once analyzed, your top 3 highest-scoring ATS resumes and structural document breakdown will appear here.
+                          </p>
                         </div>
-                      );
-                    })}
+                      </div>
+                    ) : (
+                      topResumes.map((item, index) => {
+                        const rank = index + 1;
+                        const isTop1 = rank === 1;
+                        const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : '🥉';
+                        const rankClass = rank === 1 ? 'rank-card-gold' : rank === 2 ? 'rank-card-silver' : 'rank-card-bronze';
+                        const itemThumb = item?.thumbnail || item?.parsed_data?.thumbnail;
+
+                        return (
+                          <div key={item.id || index} className={`ranking-card ${rankClass} ${isTop1 ? 'ranking-card-top1' : ''}`}>
+                            {/* Card Header Row */}
+                            <div className="ranking-card-main">
+                              <div className="ranking-badge-col">
+                                <span className="ranking-medal">{medal}</span>
+                                <span className="ranking-rank-num">#{rank}</span>
+                              </div>
+
+                              <div className="ranking-info-col">
+                                <div className="ranking-filename-wrap">
+                                  <span className="ranking-pdf-icon">📄</span>
+                                  <span className="ranking-filename" title={item.filename}>
+                                    {item.filename}
+                                  </span>
+                                </div>
+                                <div className="ranking-meta-sub">
+                                  <span className="ranking-status-tag">
+                                    {rank === 1 ? 'Highest Performing' : rank === 2 ? 'Strong Match' : 'Passing Benchmark'}
+                                  </span>
+                                  {item.created_at && (
+                                    <span className="ranking-date">
+                                      • {new Date(item.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+
+                              <div className="ranking-score-col">
+                                <div className="ranking-score-badge">
+                                  <span className="ranking-score-val">{item.ats_score || 0}%</span>
+                                  <span className="ranking-score-lbl">ATS</span>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Top 1 ONLY: File Image Overview */}
+                            {isTop1 && (
+                              <div className="ranking-top1-overview-wrapper">
+                                <div className="overview-header-bar">
+                                  <div className="overview-header-left">
+                                    <span className="overview-pulse-dot"></span>
+                                    <span className="overview-heading-text">TOP #1 FILE IMAGE OVERVIEW</span>
+                                  </div>
+                                  <span className="overview-top-tag">★ Leaderboard Winner</span>
+                                </div>
+
+                                <div 
+                                  className="overview-preview-frame"
+                                  onClick={() => setShowTop1PreviewModal(true)}
+                                  role="button"
+                                  tabIndex={0}
+                                  title="Click to view expanded document overview"
+                                >
+                                  {itemThumb ? (
+                                    <div className="overview-image-container">
+                                      <img 
+                                        src={itemThumb} 
+                                        alt={`Preview of ${item.filename}`} 
+                                        className="overview-real-img"
+                                      />
+                                      <div className="overview-zoom-hint">
+                                        <span>🔍 Click to expand preview</span>
+                                      </div>
+                                    </div>
+                                  ) : (
+                                    <div className="overview-visual-document">
+                                      {/* Document Header */}
+                                      <div className="doc-preview-head">
+                                        <div className="doc-avatar-circle">
+                                          {(item.parsed_data?.personal_info?.full_name || username || 'U').slice(0, 2).toUpperCase()}
+                                        </div>
+                                        <div className="doc-head-details">
+                                          <div className="doc-candidate-name">
+                                            {item.parsed_data?.personal_info?.full_name || username || 'Candidate Resume'}
+                                          </div>
+                                          <div className="doc-candidate-sub">
+                                            {item.parsed_data?.personal_info?.email || 'Candidate Resume'} • ATS Validated
+                                          </div>
+                                        </div>
+                                        <div className="doc-head-badge">
+                                          <span>ATS {item.ats_score}%</span>
+                                        </div>
+                                      </div>
+
+                                      {/* Mini divider */}
+                                      <div className="doc-section-divider"></div>
+
+                                      {/* Core Skills extracted preview */}
+                                      <div className="doc-preview-section">
+                                        <span className="doc-sec-label">KEY SKILLS DETECTED</span>
+                                        <div className="doc-preview-chips">
+                                          {(item.parsed_data?.skills || ['Python', 'SQL', 'React', 'FastAPI', 'AI', 'NLP']).slice(0, 6).map((sk, sIdx) => (
+                                            <span key={sIdx} className="doc-mini-chip">{sk}</span>
+                                          ))}
+                                        </div>
+                                      </div>
+
+                                      {/* Layout silhouette lines representing document pages */}
+                                      <div className="doc-preview-section mt-2">
+                                        <span className="doc-sec-label">DOCUMENT LAYOUT MAPPING</span>
+                                        <div className="doc-silhouette-grid">
+                                          <div className="doc-line line-long"></div>
+                                          <div className="doc-line line-medium"></div>
+                                          <div className="doc-line line-short"></div>
+                                        </div>
+                                      </div>
+
+                                      <div className="doc-preview-footer">
+                                        <span className="doc-footer-status">✓ Multi-Column Structural Integrity Passed</span>
+                                        <span className="doc-footer-click">Click to Expand 🔍</span>
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })
+                    )}
                   </div>
                 </div>
               </div>
