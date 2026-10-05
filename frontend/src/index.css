@@ -6935,6 +6935,68 @@ body.theme-light .ranking-image-thumb-wrap {
   border-color: #cbd5e1;
 }
 
+.image-ranking-empty-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.25rem 1.4rem;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px dashed rgba(255, 255, 255, 0.15);
+  text-align: left;
+}
+
+.empty-ranking-icon {
+  font-size: 1.8rem;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: rgba(56, 189, 248, 0.1);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.empty-ranking-content {
+  flex: 1;
+}
+
+.empty-ranking-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #f8fafc;
+  margin: 0 0 0.25rem 0;
+}
+
+.empty-ranking-desc {
+  font-size: 0.82rem;
+  color: #94a3b8;
+  line-height: 1.45;
+  margin: 0;
+}
+
+.ranking-image-fallback {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(30, 41, 59, 0.8);
+  font-size: 1.4rem;
+}
+
+body.theme-light .image-ranking-empty-card {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+body.theme-light .empty-ranking-title {
+  color: #0f172a;
+}
+
+
 
 
 
