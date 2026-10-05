@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
 import os
 # pyrefly: ignore [missing-import]
@@ -18,6 +18,10 @@ CORS(app) # Enable CORS for frontend
 UPLOAD_FOLDER = os.path.join(app.root_path, 'static', 'uploads', 'images')
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+@app.route('/static/uploads/images/<path:filename>')
+def serve_uploaded_image(filename):
+    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 
 # Database configuration
@@ -880,6 +884,22 @@ def image_scan():
         # Call Gemini Vision Model
         mime_type = "image/jpeg" if ext in {'.jpg', '.jpeg'} else f"image/{ext[1:]}"
         result = analyze_profile_image(image_bytes, mime_type)
+
+        # Generate compact base64 thumbnail for permanent display
+        try:
+            import base64
+            import cv2
+            import numpy as np
+            nparr = np.frombuffer(image_bytes, np.uint8)
+            img_mat = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+            if img_mat is not None:
+                h, w = img_mat.shape[:2]
+                scale = 200.0 / max(h, w)
+                resized = cv2.resize(img_mat, (int(w * scale), int(h * scale)))
+                _, buf = cv2.imencode('.jpg', resized, [int(cv2.IMWRITE_JPEG_QUALITY), 85])
+                result['thumbnail'] = f"data:image/jpeg;base64,{base64.b64encode(buf).decode('utf-8')}"
+        except Exception as thumb_err:
+            print(f"Thumbnail creation error: {thumb_err}")
 
         # Save the file locally
         filename = f"user_{user_id}_{int(datetime.utcnow().timestamp())}{ext}"
