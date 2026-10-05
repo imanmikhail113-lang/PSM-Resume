@@ -71,6 +71,8 @@ function Dashboard({ onLogout, userId, theme = 'dark' }) {
   const [dbStatus, setDbStatus] = useState({ connected: false, provider: 'Checking...' });
   const [historyList, setHistoryList] = useState([]);
   const [showTop1PreviewModal, setShowTop1PreviewModal] = useState(false);
+  const [imageHistory, setImageHistory] = useState([]);
+  const [selectedImageRankingPreview, setSelectedImageRankingPreview] = useState(null);
 
   const [chartData, setChartData] = useState({
     labels: ['v1', 'v2', 'v3'],
@@ -162,10 +164,19 @@ function Dashboard({ onLogout, userId, theme = 'dark' }) {
     }
   };
 
+  const fetchImageHistory = async () => {
+    if (!userId) return;
+    const data = await safeFetchJson(`${API_BASE_URL}/api/history/images/${userId}`);
+    if (data && Array.isArray(data.data)) {
+      setImageHistory(data.data);
+    }
+  };
+
   useEffect(() => {
     fetchDbStatus();
     if (userId) {
       fetchHistory();
+      fetchImageHistory();
       fetchLatestAnalysis();
       fetchLatestTargetedScan();
       fetchLatestDiscoveryScan();
@@ -182,6 +193,9 @@ function Dashboard({ onLogout, userId, theme = 'dark' }) {
   useEffect(() => {
     if (activeTab === 'USER HUB' || activeTab === 'DASHBOARD') {
       fetchHistory();
+    }
+    if (activeTab === 'IMAGE') {
+      fetchImageHistory();
     }
   }, [activeTab, userId]);
 
@@ -360,6 +374,68 @@ function Dashboard({ onLogout, userId, theme = 'dark' }) {
 
     return sorted.slice(0, 3);
   }, [historyList, result, file, currentScore]);
+
+  // Top 3 highest performing formal images ranking
+  const topImages = React.useMemo(() => {
+    let list = Array.isArray(imageHistory) ? [...imageHistory] : [];
+
+    // Ensure any active upload is reflected if present
+    if (imageResult && imagePreview) {
+      const activeScore = imageResult.score || 0;
+      const activeFilename = imageFile?.name || 'Current_Analyzed_Photo.jpg';
+      const alreadyInList = list.some(
+        (img) => (img.image_path === imagePreview || img.filename === activeFilename) && img.score === activeScore
+      );
+      if (!alreadyInList) {
+        list.push({
+          id: 'active-upload',
+          filename: activeFilename,
+          image_path: imagePreview,
+          score: activeScore,
+          created_at: new Date().toISOString(),
+          feedback_data: imageResult,
+        });
+      }
+    }
+
+    const defaultSamples = [
+      {
+        id: 'sample-1',
+        filename: 'formal image Woman.png',
+        image_path: '/formal image Woman.png',
+        score: 96,
+        created_at: new Date().toISOString(),
+      },
+      {
+        id: 'sample-2',
+        filename: 'formal image Man.jpg',
+        image_path: '/formal image Man.jpg',
+        score: 93,
+        created_at: new Date().toISOString(),
+      },
+      {
+        id: 'sample-3',
+        filename: 'formal image Professional.jpg',
+        image_path: '/formal image Professional.jpg',
+        score: 89,
+        created_at: new Date().toISOString(),
+      },
+    ];
+
+    if (list.length === 0) {
+      list = defaultSamples;
+    } else if (list.length < 3) {
+      defaultSamples.forEach((sample) => {
+        if (list.length < 3 && !list.some((item) => item.filename === sample.filename)) {
+          list.push(sample);
+        }
+      });
+    }
+
+    // Sort descending by score
+    const sorted = [...list].sort((a, b) => (Number(b.score) || 0) - (Number(a.score) || 0));
+    return sorted.slice(0, 3);
+  }, [imageHistory, imageResult, imagePreview, imageFile]);
 
   const doughnutData = {
     labels: ['Good', 'Need Fixing', 'Missing'],
@@ -575,6 +651,7 @@ function Dashboard({ onLogout, userId, theme = 'dark' }) {
       if (response.ok) {
         setImageResult(data.data.feedback_data);
         setImagePreview(`${API_BASE_URL}${data.data.image_path}`);
+        fetchImageHistory();
       } else {
         setError(data.message || 'Image analysis failed.');
       }
@@ -2245,6 +2322,90 @@ function Dashboard({ onLogout, userId, theme = 'dark' }) {
                       )}
                     </button>
                   )}
+
+                  {/* Top 3 Image Rankings */}
+                  <div className="image-ranking-section w-full">
+                    <div className="ranking-header mb-3">
+                      <div className="ranking-header-title-row">
+                        <h3 className="section-title text-left mb-1" style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+                          <span>🏆</span> TOP IMAGE RANKINGS
+                        </h3>
+                        <span className="ranking-top-count-pill">Top 3 Scored</span>
+                      </div>
+                      <p className="text-xs text-secondary text-left">
+                        Highest performing profile headshots based on Formal Criteria & Biometric Quality
+                      </p>
+                    </div>
+
+                    <div className="ranking-list">
+                      {topImages.map((item, index) => {
+                        const rank = index + 1;
+                        const isTop1 = rank === 1;
+                        const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : '🥉';
+                        const rankClass = rank === 1 ? 'rank-card-gold' : rank === 2 ? 'rank-card-silver' : 'rank-card-bronze';
+                        const imgSrc = item.image_path.startsWith('http') || item.image_path.startsWith('/') 
+                          ? item.image_path 
+                          : `${API_BASE_URL}${item.image_path}`;
+
+                        return (
+                          <div 
+                            key={item.id || index} 
+                            className={`ranking-card image-ranking-card ${rankClass} ${isTop1 ? 'ranking-card-top1' : ''}`}
+                            onClick={() => setSelectedImageRankingPreview(item)}
+                            role="button"
+                            tabIndex={0}
+                            title="Click to view full image overview"
+                          >
+                            <div className="ranking-card-main">
+                              <div className="ranking-badge-col">
+                                <span className="ranking-medal">{medal}</span>
+                                <span className="ranking-rank-num">#{rank}</span>
+                              </div>
+
+                              {/* Visible Image Thumbnail */}
+                              <div className="ranking-image-thumb-wrap">
+                                <img 
+                                  src={imgSrc} 
+                                  alt={item.filename} 
+                                  className="ranking-image-thumb" 
+                                  onError={(e) => {
+                                    e.target.onerror = null;
+                                    e.target.src = '/formal image Man.jpg';
+                                  }}
+                                />
+                                <div className="ranking-image-zoom-overlay">🔍</div>
+                              </div>
+
+                              <div className="ranking-info-col">
+                                <div className="ranking-filename-wrap">
+                                  <span className="ranking-filename" title={item.filename}>
+                                    {item.filename}
+                                  </span>
+                                </div>
+                                <div className="ranking-meta-sub">
+                                  <span className="ranking-status-tag">
+                                    {rank === 1 ? 'Highest Performing Formal' : rank === 2 ? 'Executive Grade' : 'Standard Approved'}
+                                  </span>
+                                  {item.created_at && (
+                                    <span className="ranking-date">
+                                      • {new Date(item.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+
+                              <div className="ranking-score-col">
+                                <div className="ranking-score-badge">
+                                  <span className="ranking-score-val">{item.score || 0}%</span>
+                                  <span className="ranking-score-lbl">FORMAL</span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
                 </div>
               </div>
             ) : (
@@ -2601,6 +2762,47 @@ function Dashboard({ onLogout, userId, theme = 'dark' }) {
                   </div>
                 </div>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Top Image Ranking Modal Preview */}
+      {selectedImageRankingPreview && (
+        <div className="google-chooser-overlay" onClick={() => setSelectedImageRankingPreview(null)}>
+          <div className="preview-modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '520px' }}>
+            <button 
+              type="button" 
+              className="modal-close" 
+              onClick={() => setSelectedImageRankingPreview(null)}
+              aria-label="Close"
+            >
+              ×
+            </button>
+            <div className="preview-modal-header mb-3">
+              <span className="preview-modal-badge">
+                ★ Top Image Formal Score: {selectedImageRankingPreview.score}%
+              </span>
+              <h3 className="preview-modal-title">{selectedImageRankingPreview.filename}</h3>
+              <p className="preview-modal-sub">
+                Formality Benchmark Status: <strong>{selectedImageRankingPreview.score >= 70 ? 'Passed Standard' : 'Needs Optimization'}</strong>
+              </p>
+            </div>
+
+            <div className="preview-modal-content" style={{ textAlign: 'center' }}>
+              <div style={{ borderRadius: '14px', overflow: 'hidden', border: '2px solid rgba(56, 189, 248, 0.4)', background: '#0b1120', display: 'flex', justifyContent: 'center' }}>
+                <img 
+                  src={selectedImageRankingPreview.image_path.startsWith('http') || selectedImageRankingPreview.image_path.startsWith('/') 
+                    ? selectedImageRankingPreview.image_path 
+                    : `${API_BASE_URL}${selectedImageRankingPreview.image_path}`}
+                  alt={selectedImageRankingPreview.filename}
+                  style={{ maxWidth: '100%', maxHeight: '60vh', objectFit: 'contain' }}
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = '/formal image Man.jpg';
+                  }}
+                />
+              </div>
             </div>
           </div>
         </div>
