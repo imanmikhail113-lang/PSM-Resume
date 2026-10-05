@@ -5244,3 +5244,177 @@ body.theme-light .preview-modal-title {
   color: #0f172a;
 }
 
+/* ═══════════════════════════════════════════
+   CAREER SELECTOR BIG CONTAINERS & GUIDES
+   ═══════════════════════════════════════════ */
+
+.career-selector-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 2.25rem;
+  width: 100%;
+  max-width: 1400px;
+  margin: 1.5rem auto 2.5rem;
+  align-items: stretch;
+}
+
+@media (max-width: 1080px) {
+  .career-selector-cards-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.career-hero-card {
+  border-radius: 28px;
+  padding: 2.5rem 2.25rem 2.25rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  overflow: hidden;
+  text-align: left;
+}
+
+.career-hero-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 25px 65px rgba(0, 0, 0, 0.6);
+}
+
+/* Card 1: Vibrant Royal Blue */
+.career-card-targeted {
+  background: #0052cc;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+/* Card 2: Deep Purple */
+.career-card-discovery {
+  background: #332054;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.career-hero-title {
+  font-size: 1.85rem;
+  font-weight: 800;
+  color: #ffffff;
+  margin: 0 0 0.85rem 0;
+  letter-spacing: -0.01em;
+}
+
+.career-hero-desc {
+  font-size: 1.02rem;
+  font-weight: 500;
+  line-height: 1.55;
+  color: #ffffff;
+  margin: 0 0 1.5rem 0;
+  opacity: 0.98;
+}
+
+.career-instructions-box {
+  margin-bottom: 1.25rem;
+}
+
+.career-instructions-heading {
+  font-size: 1.02rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0 0 0.45rem 0;
+}
+
+.career-instructions-list {
+  margin: 0;
+  padding-left: 1.25rem;
+  color: #ffffff;
+  font-size: 0.95rem;
+  line-height: 1.65;
+  font-weight: 500;
+}
+
+.career-instructions-list li {
+  margin-bottom: 0.2rem;
+}
+
+.career-instructions-note {
+  font-size: 0.92rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.95);
+  margin-top: 0.45rem;
+  margin-bottom: 0;
+}
+
+.career-hero-image-wrap {
+  width: 100%;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.35);
+  margin: 1.5rem 0 1.75rem 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.career-card-discovery .career-hero-image-wrap {
+  background: #1b122c;
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.career-hero-image {
+  width: 100%;
+  height: auto;
+  display: block;
+  object-fit: contain;
+}
+
+.career-hero-btn-wrap {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  margin-top: auto;
+  padding-top: 0.75rem;
+}
+
+.career-hero-btn {
+  background: #8ebdf2;
+  color: #000000;
+  font-size: 1.25rem;
+  font-weight: 700;
+  padding: 0.95rem 2.8rem;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
+  min-width: 290px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Inter', sans-serif;
+}
+
+.career-hero-btn:hover:not(:disabled) {
+  background: #a5cefc;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+.career-hero-btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+/* Light Mode Consistency */
+body.theme-light .career-card-targeted {
+  background: #0052cc;
+  box-shadow: 0 20px 45px rgba(0, 82, 204, 0.25);
+}
+
+body.theme-light .career-card-discovery {
+  background: #332054;
+  box-shadow: 0 20px 45px rgba(51, 32, 84, 0.25);
+}
+
+
