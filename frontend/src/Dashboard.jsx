@@ -30,6 +30,17 @@ ChartJS.register(
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
+const resolveImageUrl = (path) => {
+  if (!path) return '';
+  if (path.startsWith('http://') || path.startsWith('https://') || path.startsWith('blob:') || path.startsWith('data:')) {
+    return path;
+  }
+  if (path.startsWith('/static/')) {
+    return `${API_BASE_URL}${path}`;
+  }
+  return path;
+};
+
 function Dashboard({ onLogout, userId, theme = 'dark' }) {
   const username = localStorage.getItem('user_username') || 'Mikhail';
   const [activeTab, setActiveTab] = useState('USER HUB');
@@ -375,7 +386,18 @@ function Dashboard({ onLogout, userId, theme = 'dark' }) {
     return sorted.slice(0, 3);
   }, [historyList, result, file, currentScore]);
 
-  // Top 3 highest performing formal images ranking
+  // Helper to reliably resolve uploaded/backend images
+  const resolveImageUrl = (path) => {
+    if (!path) return '';
+    if (path.startsWith('data:') || path.startsWith('blob:')) return path;
+    if (path.startsWith('http://') || path.startsWith('https://')) return path;
+    if (path.startsWith('/static/')) return `${API_BASE_URL}${path}`;
+    if (path.startsWith('static/')) return `${API_BASE_URL}/${path}`;
+    if (path.startsWith('/')) return path;
+    return `${API_BASE_URL}/${path}`;
+  };
+
+  // Top 3 highest performing formal images ranking (real user scans only)
   const topImages = React.useMemo(() => {
     let list = Array.isArray(imageHistory) ? [...imageHistory] : [];
 
@@ -384,52 +406,19 @@ function Dashboard({ onLogout, userId, theme = 'dark' }) {
       const activeScore = imageResult.score || 0;
       const activeFilename = imageFile?.name || 'Current_Analyzed_Photo.jpg';
       const alreadyInList = list.some(
-        (img) => (img.image_path === imagePreview || img.filename === activeFilename) && img.score === activeScore
+        (img) => (img.image_path === imagePreview || img.filename === activeFilename) && Number(img.score) === Number(activeScore)
       );
       if (!alreadyInList) {
         list.push({
           id: 'active-upload',
           filename: activeFilename,
           image_path: imagePreview,
+          thumbnail: imageResult.thumbnail || imagePreview,
           score: activeScore,
           created_at: new Date().toISOString(),
           feedback_data: imageResult,
         });
       }
-    }
-
-    const defaultSamples = [
-      {
-        id: 'sample-1',
-        filename: 'formal image Woman.png',
-        image_path: '/formal image Woman.png',
-        score: 96,
-        created_at: new Date().toISOString(),
-      },
-      {
-        id: 'sample-2',
-        filename: 'formal image Man.jpg',
-        image_path: '/formal image Man.jpg',
-        score: 93,
-        created_at: new Date().toISOString(),
-      },
-      {
-        id: 'sample-3',
-        filename: 'formal image Professional.jpg',
-        image_path: '/formal image Professional.jpg',
-        score: 89,
-        created_at: new Date().toISOString(),
-      },
-    ];
-
-    if (list.length === 0) {
-      list = defaultSamples;
-    } else if (list.length < 3) {
-      defaultSamples.forEach((sample) => {
-        if (list.length < 3 && !list.some((item) => item.filename === sample.filename)) {
-          list.push(sample);
-        }
-      });
     }
 
     // Sort descending by score
@@ -2338,72 +2327,91 @@ function Dashboard({ onLogout, userId, theme = 'dark' }) {
                     </div>
 
                     <div className="ranking-list">
-                      {topImages.map((item, index) => {
-                        const rank = index + 1;
-                        const isTop1 = rank === 1;
-                        const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : '🥉';
-                        const rankClass = rank === 1 ? 'rank-card-gold' : rank === 2 ? 'rank-card-silver' : 'rank-card-bronze';
-                        const imgSrc = item.image_path.startsWith('http') || item.image_path.startsWith('/') 
-                          ? item.image_path 
-                          : `${API_BASE_URL}${item.image_path}`;
+                      {topImages.length === 0 ? (
+                        <div className="image-ranking-empty-card">
+                          <div className="empty-ranking-icon">📸</div>
+                          <div className="empty-ranking-content">
+                            <h4 className="empty-ranking-title">No Formal Headshots Scanned Yet</h4>
+                            <p className="empty-ranking-desc">
+                              Upload your first profile picture above. Once analyzed, your top 3 highest-rated headshots and biometric formality scores will appear here.
+                            </p>
+                          </div>
+                        </div>
+                      ) : (
+                        topImages.map((item, index) => {
+                          const rank = index + 1;
+                          const isTop1 = rank === 1;
+                          const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : '🥉';
+                          const rankClass = rank === 1 ? 'rank-card-gold' : rank === 2 ? 'rank-card-silver' : 'rank-card-bronze';
+                          const imgSrc = item.thumbnail || item.feedback_data?.thumbnail || resolveImageUrl(item.image_path);
 
-                        return (
-                          <div 
-                            key={item.id || index} 
-                            className={`ranking-card image-ranking-card ${rankClass} ${isTop1 ? 'ranking-card-top1' : ''}`}
-                            onClick={() => setSelectedImageRankingPreview(item)}
-                            role="button"
-                            tabIndex={0}
-                            title="Click to view full image overview"
-                          >
-                            <div className="ranking-card-main">
-                              <div className="ranking-badge-col">
-                                <span className="ranking-medal">{medal}</span>
-                                <span className="ranking-rank-num">#{rank}</span>
-                              </div>
-
-                              {/* Visible Image Thumbnail */}
-                              <div className="ranking-image-thumb-wrap">
-                                <img 
-                                  src={imgSrc} 
-                                  alt={item.filename} 
-                                  className="ranking-image-thumb" 
-                                  onError={(e) => {
-                                    e.target.onerror = null;
-                                    e.target.src = '/formal image Man.jpg';
-                                  }}
-                                />
-                                <div className="ranking-image-zoom-overlay">🔍</div>
-                              </div>
-
-                              <div className="ranking-info-col">
-                                <div className="ranking-filename-wrap">
-                                  <span className="ranking-filename" title={item.filename}>
-                                    {item.filename}
-                                  </span>
+                          return (
+                            <div 
+                              key={item.id || index} 
+                              className={`ranking-card image-ranking-card ${rankClass} ${isTop1 ? 'ranking-card-top1' : ''}`}
+                              onClick={() => setSelectedImageRankingPreview(item)}
+                              role="button"
+                              tabIndex={0}
+                              title="Click to view full image overview"
+                            >
+                              <div className="ranking-card-main">
+                                <div className="ranking-badge-col">
+                                  <span className="ranking-medal">{medal}</span>
+                                  <span className="ranking-rank-num">#{rank}</span>
                                 </div>
-                                <div className="ranking-meta-sub">
-                                  <span className="ranking-status-tag">
-                                    {rank === 1 ? 'Highest Performing Formal' : rank === 2 ? 'Executive Grade' : 'Standard Approved'}
-                                  </span>
-                                  {item.created_at && (
-                                    <span className="ranking-date">
-                                      • {new Date(item.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+
+                                {/* Visible Image Thumbnail */}
+                                <div className="ranking-image-thumb-wrap">
+                                  {imgSrc ? (
+                                    <img 
+                                      src={imgSrc} 
+                                      alt={item.filename} 
+                                      className="ranking-image-thumb" 
+                                      onError={(e) => {
+                                        e.target.onerror = null;
+                                        e.target.style.display = 'none';
+                                        if (e.target.parentElement) {
+                                          const fallback = e.target.parentElement.querySelector('.ranking-image-fallback');
+                                          if (fallback) fallback.style.display = 'flex';
+                                        }
+                                      }}
+                                    />
+                                  ) : null}
+                                  <div className="ranking-image-fallback" style={{ display: imgSrc ? 'none' : 'flex' }}>
+                                    👤
+                                  </div>
+                                  <div className="ranking-image-zoom-overlay">🔍</div>
+                                </div>
+
+                                <div className="ranking-info-col">
+                                  <div className="ranking-filename-wrap">
+                                    <span className="ranking-filename" title={item.filename}>
+                                      {item.filename}
                                     </span>
-                                  )}
+                                  </div>
+                                  <div className="ranking-meta-sub">
+                                    <span className="ranking-status-tag">
+                                      {rank === 1 ? 'Highest Performing Formal' : rank === 2 ? 'Executive Grade' : 'Standard Approved'}
+                                    </span>
+                                    {item.created_at && (
+                                      <span className="ranking-date">
+                                        • {new Date(item.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                                      </span>
+                                    )}
+                                  </div>
                                 </div>
-                              </div>
 
-                              <div className="ranking-score-col">
-                                <div className="ranking-score-badge">
-                                  <span className="ranking-score-val">{item.score || 0}%</span>
-                                  <span className="ranking-score-lbl">FORMAL</span>
+                                <div className="ranking-score-col">
+                                  <div className="ranking-score-badge">
+                                    <span className="ranking-score-val">{item.score || 0}%</span>
+                                    <span className="ranking-score-lbl">FORMAL</span>
+                                  </div>
                                 </div>
                               </div>
                             </div>
-                          </div>
-                        );
-                      })}
+                          );
+                        })
+                      )}
                     </div>
                   </div>
                 </div>
@@ -2790,16 +2798,16 @@ function Dashboard({ onLogout, userId, theme = 'dark' }) {
             </div>
 
             <div className="preview-modal-content" style={{ textAlign: 'center' }}>
-              <div style={{ borderRadius: '14px', overflow: 'hidden', border: '2px solid rgba(56, 189, 248, 0.4)', background: '#0b1120', display: 'flex', justifyContent: 'center' }}>
+              <div style={{ borderRadius: '14px', overflow: 'hidden', border: '2px solid rgba(56, 189, 248, 0.4)', background: '#0b1120', display: 'flex', justifyContent: 'center', minHeight: '200px', alignItems: 'center' }}>
                 <img 
-                  src={selectedImageRankingPreview.image_path.startsWith('http') || selectedImageRankingPreview.image_path.startsWith('/') 
-                    ? selectedImageRankingPreview.image_path 
-                    : `${API_BASE_URL}${selectedImageRankingPreview.image_path}`}
+                  src={selectedImageRankingPreview.thumbnail || selectedImageRankingPreview.feedback_data?.thumbnail || resolveImageUrl(selectedImageRankingPreview.image_path)}
                   alt={selectedImageRankingPreview.filename}
                   style={{ maxWidth: '100%', maxHeight: '60vh', objectFit: 'contain' }}
                   onError={(e) => {
                     e.target.onerror = null;
-                    e.target.src = '/formal image Man.jpg';
+                    if (selectedImageRankingPreview.thumbnail) {
+                      e.target.src = selectedImageRankingPreview.thumbnail;
+                    }
                   }}
                 />
               </div>
