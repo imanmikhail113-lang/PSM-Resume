@@ -1197,7 +1197,7 @@ body.theme-dark .google-chooser-header p {
   display: flex;
   flex-direction: column;
   gap: 0.65rem;
-  margin-bottom: 1.25rem;
+  margin-bottom: 0;
 }
 
 .google-account-btn {
