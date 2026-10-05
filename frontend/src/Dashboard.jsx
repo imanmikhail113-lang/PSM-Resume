@@ -1593,31 +1593,68 @@ function Dashboard({ onLogout, userId, theme = 'dark' }) {
             <div className="career-selector-cards-grid">
               {/* Card 1: Targeted Scan */}
               <div className="career-hero-card career-card-targeted">
+                <div className="career-card-ambient-glow"></div>
                 <div className="career-hero-content">
+                  <div className="career-badge-row">
+                    <span className="career-mode-badge targeted-badge">
+                      <span className="badge-glow-dot"></span>
+                      TARGETED MATCHING
+                    </span>
+                    <span className="career-badge-tag">Role-Specific</span>
+                  </div>
+
                   <h2 className="career-hero-title">Targeted Scan</h2>
                   <p className="career-hero-desc">
                     Match your resume against a specific job role and description. Get a semantic compatibility score, identify missing critical keywords, and receive tailored improvement advice.
                   </p>
 
                   <div className="career-instructions-box">
-                    <h4 className="career-instructions-heading">How to use:</h4>
+                    <div className="career-instructions-header-row">
+                      <span className="instructions-icon">📋</span>
+                      <h4 className="career-instructions-heading">How to use:</h4>
+                    </div>
                     <ol className="career-instructions-list">
-                      <li>Go to any Job finding website (example Jobstreet)</li>
-                      <li>Click on the Start Targeted Scan Button</li>
-                      <li>Copy the Job title and paste it in the given column</li>
-                      <li>Copy the Job Description and paste it in the given column</li>
+                      <li>
+                        <span className="step-num-pill">1</span>
+                        <span className="step-text">Go to any Job finding website (example Jobstreet)</span>
+                      </li>
+                      <li>
+                        <span className="step-num-pill">2</span>
+                        <span className="step-text">Click on the Start Targeted Scan Button</span>
+                      </li>
+                      <li>
+                        <span className="step-num-pill">3</span>
+                        <span className="step-text">Copy the Job title and paste it in the given column</span>
+                      </li>
+                      <li>
+                        <span className="step-num-pill">4</span>
+                        <span className="step-text">Copy the Job Description and paste it in the given column</span>
+                      </li>
                     </ol>
-                    <p className="career-instructions-note">
-                      Notes: more job description given give more accurate score
-                    </p>
+                    <div className="career-instructions-note-pill">
+                      <span className="note-star">💡</span>
+                      <span className="career-instructions-note">
+                        Notes: more job description given give more accurate score
+                      </span>
+                    </div>
                   </div>
 
                   <div className="career-hero-image-wrap">
-                    <img 
-                      src="/targetedscan.png" 
-                      alt="Targeted Scan Example" 
-                      className="career-hero-image" 
-                    />
+                    <div className="preview-window-bar">
+                      <div className="window-dots">
+                        <span className="w-dot red"></span>
+                        <span className="w-dot yellow"></span>
+                        <span className="w-dot green"></span>
+                      </div>
+                      <span className="window-title">Jobstreet Position & Description Mapping</span>
+                    </div>
+                    <div className="image-inner-container">
+                      <img 
+                        src="/targetedscan.png" 
+                        alt="Targeted Scan Example" 
+                        className="career-hero-image" 
+                      />
+                    </div>
                   </div>
                 </div>
 
@@ -1626,34 +1663,66 @@ function Dashboard({ onLogout, userId, theme = 'dark' }) {
                     className="career-hero-btn" 
                     onClick={() => setShowTargetedModal(true)}
                   >
-                    Start Targeted Scan
+                    <span>Start Targeted Scan</span>
+                    <span className="btn-arrow-icon">→</span>
                   </button>
                 </div>
               </div>
 
               {/* Card 2: Discovery Scan */}
               <div className="career-hero-card career-card-discovery">
+                <div className="career-card-ambient-glow"></div>
                 <div className="career-hero-content">
+                  <div className="career-badge-row">
+                    <span className="career-mode-badge discovery-badge">
+                      <span className="badge-glow-dot"></span>
+                      AI DISCOVERY
+                    </span>
+                    <span className="career-badge-tag">Automatic Match</span>
+                  </div>
+
                   <h2 className="career-hero-title">Discovery Scan</h2>
                   <p className="career-hero-desc">
                     Let AI analyze your resume to automatically match you with different job roles (e.g. Data Analyst, ML Engineer, Full-Stack Dev). Highlights skill gaps and provides additions for your resume.
                   </p>
 
                   <div className="career-instructions-box">
-                    <h4 className="career-instructions-heading">How to use:</h4>
+                    <div className="career-instructions-header-row">
+                      <span className="instructions-icon">⚡</span>
+                      <h4 className="career-instructions-heading">How to use:</h4>
+                    </div>
                     <ol className="career-instructions-list">
-                      <li>Click on the Start Discovery Button</li>
-                      <li>The system will use your resume highlights the keyword for semantic score match</li>
-                      <li>The system will shows top 3 most relevant jobs related to your resume</li>
+                      <li>
+                        <span className="step-num-pill">1</span>
+                        <span className="step-text">Click on the Start Discovery Button</span>
+                      </li>
+                      <li>
+                        <span className="step-num-pill">2</span>
+                        <span className="step-text">The system will use your resume highlights the keyword for semantic score match</span>
+                      </li>
+                      <li>
+                        <span className="step-num-pill">3</span>
+                        <span className="step-text">The system will shows top 3 most relevant jobs related to your resume</span>
+                      </li>
                     </ol>
                   </div>
 
                   <div className="career-hero-image-wrap">
-                    <img 
-                      src="/discoveryscan.png" 
-                      alt="Discovery Scan Example" 
-                      className="career-hero-image" 
-                    />
+                    <div className="preview-window-bar">
+                      <div className="window-dots">
+                        <span className="w-dot red"></span>
+                        <span className="w-dot yellow"></span>
+                        <span className="w-dot green"></span>
+                      </div>
+                      <span className="window-title">AI Multi-Role Match Results</span>
+                    </div>
+                    <div className="image-inner-container">
+                      <img 
+                        src="/discoveryscan.png" 
+                        alt="Discovery Scan Example" 
+                        className="career-hero-image" 
+                      />
+                    </div>
                   </div>
                 </div>
 
@@ -1663,7 +1732,8 @@ function Dashboard({ onLogout, userId, theme = 'dark' }) {
                     onClick={handleDiscoveryScanSubmit}
                     disabled={isAnalyzingDiscovery}
                   >
-                    {isAnalyzingDiscovery ? "Analyzing..." : "Start Discovery Scan"}
+                    <span>{isAnalyzingDiscovery ? "Analyzing..." : "Start Discovery Scan"}</span>
+                    {!isAnalyzingDiscovery && <span className="btn-arrow-icon">→</span>}
                   </button>
                 </div>
               </div>
