@@ -48,7 +48,7 @@ function App() {
       {!userId ? (
         <Login onLoginSuccess={(id) => setUserId(id)} />
       ) : (
-        <Dashboard onLogout={handleLogout} userId={userId} theme={theme} />
+        <Dashboard key={userId} onLogout={handleLogout} userId={userId} theme={theme} />
       )}
     </>
   );
