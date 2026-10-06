@@ -718,7 +718,19 @@ function Dashboard({ onLogout, userId, theme = 'dark' }) {
       {/* Sidebar */}
       <aside className="sidebar">
         <div className="sidebar-header">
-          <div className="workspace-brand"><span className="brand-symbol">↗</span>resume<span className="brand-dot">.</span></div><p className="workspace-subtitle">YOUR CAREER WORKSPACE</p>
+          <div className="workspace-brand">
+            <span className="brand-symbol">↗</span>resume<span className="brand-dot">.</span>
+          </div>
+          <p className="workspace-subtitle">YOUR CAREER WORKSPACE</p>
+          <div className="sidebar-university-badge">
+            <img 
+              src="/uthm-logo.png" 
+              alt="Universiti Tun Hussein Onn Malaysia (UTHM)" 
+              width="140" 
+              height="46"
+            />
+            <span className="sidebar-faculty-tag">FSKTM • UTHM</span>
+          </div>
         </div>
         <nav className="sidebar-nav">
           <a 
@@ -758,15 +770,17 @@ function Dashboard({ onLogout, userId, theme = 'dark' }) {
           </a>
         </nav>
         <div className="sidebar-footer">
-          <div className="db-indicator" style={{ marginBottom: '1rem', padding: '0.5rem', background: 'rgba(255,255,255,0.02)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)', fontSize: '0.8rem', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '0.5rem', justifyContent: 'center' }}>
-            <span style={{ 
-              width: '8px', 
-              height: '8px', 
-              borderRadius: '50%', 
-              backgroundColor: dbStatus.connected ? (dbStatus.provider === 'Supabase' ? '#10b981' : '#ff344b') : '#ef4444',
-              boxShadow: dbStatus.connected ? `0 0 8px ${dbStatus.provider === 'Supabase' ? '#10b981' : '#ff344b'}` : 'none'
-            }}></span>
-            {dbStatus.connected ? 'Workspace connected' : 'Connection unavailable'}
+          <div className="db-indicator">
+            <span 
+              className="status-dot"
+              style={{ 
+                backgroundColor: dbStatus.connected ? '#10b981' : '#f59e0b',
+                boxShadow: dbStatus.connected ? '0 0 10px rgba(16, 185, 129, 0.5)' : '0 0 8px rgba(245, 158, 11, 0.4)'
+              }}
+            />
+            <span className="status-text">
+              {dbStatus.connected ? `Workspace Connected (${dbStatus.provider})` : 'Connecting…'}
+            </span>
           </div>
           <button onClick={onLogout} className="btn-logout">⏻ Log out</button>
         </div>

@@ -377,7 +377,10 @@ def init_db_background(flask_app):
 
 # Create authentication tables before accepting requests; seed jobs in background.
 with app.app_context():
-    db.create_all()
+    try:
+        db.create_all()
+    except Exception as e:
+        print(f"Warning: Initial db.create_all deferred or encountered note: {e}")
 
 # Background legacy-schema verification and job seeding
 threading.Thread(target=init_db_background, args=(app,), daemon=True).start()

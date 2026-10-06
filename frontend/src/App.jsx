@@ -25,6 +25,6 @@ export default function App() {
       setUserId(null);setSessionError('');
     } catch {setSessionError('Could not sign out. Check your connection and try again.');}
   }
-  if(checking)return <div className="session-loading" role="status"><span className="brand-symbol">↗</span> Opening your workspace…</div>;
-  return <>{sessionError && <div className="session-notice" role="alert">{sessionError}<button onClick={()=>setSessionError('')} aria-label="Dismiss">×</button></div>}{userId ? <Suspense fallback={<div className="session-loading" role="status">Opening your workspace…</div>}><Dashboard key={userId} userId={userId} theme="dark" onLogout={logout}/></Suspense> : <Login onLoginSuccess={id=>{setUserId(id);setSessionError('');}}/>}</>;
+
+  return <>{sessionError && <div className="session-notice" role="alert">{sessionError}<button onClick={()=>setSessionError('')} aria-label="Dismiss">×</button></div>}{userId ? <Suspense fallback={<div className="session-loading" role="status">Opening your workspace…</div>}><Dashboard key={userId} userId={userId} theme="dark" onLogout={logout}/></Suspense> : <Login restoringSession={checking} onLoginSuccess={id=>{setUserId(id);setSessionError('');}}/>}</>;
 }

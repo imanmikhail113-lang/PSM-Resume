@@ -1,6 +1,14 @@
 {
   "rewrites": [
     {
+      "source": "/api/:path*",
+      "destination": "https://psm-resume.onrender.com/api/:path*"
+    },
+    {
+      "source": "/static/uploads/:path*",
+      "destination": "https://psm-resume.onrender.com/static/uploads/:path*"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }
