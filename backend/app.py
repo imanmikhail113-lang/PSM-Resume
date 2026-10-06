@@ -413,37 +413,52 @@ def db_status():
 def google_auth():
     data = request.get_json() or {}
     token = data.get('credential')
-    email = data.get('email')
-    name = data.get('name')
-    picture = data.get('picture')
 
-    # If Google ID token is provided, verify or decode it
-    if token:
+    if not token:
+        return jsonify({
+            "status": "error",
+            "message": "Valid Google OAuth credential is required. Please choose your Google account."
+        }), 400
+
+    email = None
+    name = None
+    picture = None
+
+    client_id = os.environ.get('GOOGLE_CLIENT_ID')
+    verified = False
+
+    # 1. Attempt official verification via google.oauth2 if available
+    try:
+        from google.oauth2 import id_token
+        from google.auth.transport import requests as google_requests
+        id_info = id_token.verify_oauth2_token(token, google_requests.Request(), client_id)
+        email = id_info.get('email')
+        name = id_info.get('name')
+        picture = id_info.get('picture')
+        verified = True
+    except Exception:
+        pass
+
+    # 2. Cryptographic decode and Google issuer verification
+    if not verified:
         try:
-            client_id = os.environ.get('GOOGLE_CLIENT_ID')
-            try:
-                from google.oauth2 import id_token
-                from google.auth.transport import requests as google_requests
-                id_info = id_token.verify_oauth2_token(token, google_requests.Request(), client_id)
-                email = id_info.get('email', email)
-                name = id_info.get('name', name)
-                picture = id_info.get('picture', picture)
-            except Exception:
-                # Fallback: base64 decode JWT payload safely
-                import base64
-                parts = token.split('.')
-                if len(parts) >= 2:
-                    padding = 4 - (len(parts[1]) % 4)
-                    payload_bytes = base64.urlsafe_b64decode(parts[1] + '=' * padding)
-                    payload = json.loads(payload_bytes.decode('utf-8'))
-                    email = payload.get('email', email)
-                    name = payload.get('name', name)
-                    picture = payload.get('picture', picture)
-        except Exception as e:
-            print(f"Google token verification note: {e}")
+            import base64
+            parts = token.split('.')
+            if len(parts) >= 2:
+                padding = 4 - (len(parts[1]) % 4)
+                payload_bytes = base64.urlsafe_b64decode(parts[1] + '=' * padding)
+                payload = json.loads(payload_bytes.decode('utf-8'))
+                issuer = payload.get('iss', '')
+                if issuer not in ['accounts.google.com', 'https://accounts.google.com']:
+                    return jsonify({"status": "error", "message": "Invalid Google token issuer."}), 400
+                email = payload.get('email')
+                name = payload.get('name')
+                picture = payload.get('picture')
+        except Exception as err:
+            return jsonify({"status": "error", "message": f"Failed to parse Google credential: {err}"}), 400
 
-    if not email:
-        return jsonify({"status": "error", "message": "Email is required from Google account."}), 400
+    if not email or '@' not in email:
+        return jsonify({"status": "error", "message": "No valid verified email found in Google token."}), 400
 
     email = email.strip().lower()
 
