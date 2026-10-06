@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect, useRef, useState } from 'react';
-import { authRequest, guestLogin, rememberSession } from './api';
+import { authRequest, rememberSession } from './api';
 
 const ResumeScene = lazy(() => import('./ResumeScene'));
 let googleScript;
@@ -42,7 +42,6 @@ export default function Login({ onLoginSuccess, restoringSession = false }) {
   const [error, setError] = useState('');
   const [status, setStatus] = useState('loading'); // 'loading' | 'ready' | 'unconfigured' | 'signing' | 'error'
   const [attempt, setAttempt] = useState(0);
-  const [isGuestLoading, setIsGuestLoading] = useState(false);
   const [showConfigModal, setShowConfigModal] = useState(false);
   const [customClientId, setCustomClientId] = useState(localStorage.getItem('custom_google_client_id') || '');
   const [activeClientId, setActiveClientId] = useState('');
@@ -122,23 +121,6 @@ export default function Login({ onLoginSuccess, restoringSession = false }) {
     return () => { active = false; };
   }, [attempt, restoringSession, customClientId]);
 
-  const handleGuestEntry = async (e) => {
-    e?.preventDefault();
-    setIsGuestLoading(true);
-    setError('');
-    try {
-      const user = await guestLogin({
-        email: 'student@siswa.uthm.edu.my',
-        name: 'UTHM Student'
-      });
-      callback.current(user.user_id);
-    } catch (err) {
-      // If backend guest endpoint isn't reached, try fallback session
-      setError(err.message || 'Unable to open workspace. Check server connection.');
-      setIsGuestLoading(false);
-    }
-  };
-
   const handleSaveCustomClientId = (e) => {
     e.preventDefault();
     const trimmed = customClientId.trim();
@@ -213,7 +195,7 @@ export default function Login({ onLoginSuccess, restoringSession = false }) {
               <span>✦ AI Headshot Audit</span>
             </div>
 
-            {/* Workspace Access Panel */}
+            {/* Workspace Access Panel - Google Only */}
             <section className="signin-box" id="workspace" aria-labelledby="signin-title">
               <div className="signin-heading">
                 <div>
@@ -221,32 +203,15 @@ export default function Login({ onLoginSuccess, restoringSession = false }) {
                     <img src="/uthm-logo.png" alt="UTHM" width="60" height="20" />
                     <span>UTHM STUDENT WORKSPACE</span>
                   </div>
-                  <h2 id="signin-title">Enter your workspace.</h2>
+                  <h2 id="signin-title">Sign in with Google</h2>
                 </div>
                 <span className="signin-arrow" aria-hidden="true">↗</span>
               </div>
+              <p className="signin-lead">
+                Use your official UTHM Siswa account or personal Google account to access your resume workspace.
+              </p>
 
-              {/* Primary Instant Student/Guest Entry */}
               <div className="workspace-entry-actions">
-                <button 
-                  type="button" 
-                  className="btn-guest-entry"
-                  onClick={handleGuestEntry}
-                  disabled={isGuestLoading}
-                >
-                  <span className="guest-icon">🎓</span>
-                  <div className="guest-label">
-                    <strong>Enter as UTHM Student / Guest</strong>
-                    <small>Instant access • Explore all resume tools</small>
-                  </div>
-                  <span className="guest-arrow">{isGuestLoading ? '…' : '↗'}</span>
-                </button>
-
-                {/* Google Sign-in Section */}
-                <div className="auth-divider">
-                  <span>OR SIGN IN WITH GOOGLE</span>
-                </div>
-
                 <div className="google-button-container">
                   <div className="google-button" ref={button} hidden={status !== 'ready'} />
 
@@ -278,7 +243,7 @@ export default function Login({ onLoginSuccess, restoringSession = false }) {
                         <span className="config-chip">Setup Client ID</span>
                       </button>
                       <p className="auth-note">
-                        💡 You can use <strong>Instant Student Access</strong> above, or configure Google OAuth below.
+                        Google sign-in is awaiting configuration. Click above to connect your Client ID.
                       </p>
                     </div>
                   )}
@@ -297,12 +262,6 @@ export default function Login({ onLoginSuccess, restoringSession = false }) {
                     >
                       Retry Connection <span>↺</span>
                     </button>
-                    <button 
-                      className="fallback-guest-btn"
-                      onClick={handleGuestEntry}
-                    >
-                      Enter Workspace Anyway <span>↗</span>
-                    </button>
                   </div>
                 </div>
               )}
@@ -317,13 +276,7 @@ export default function Login({ onLoginSuccess, restoringSession = false }) {
                       ? 'Connection note' 
                       : 'Connecting securely…'}
                 </span>
-                <button 
-                  type="button"
-                  className="link-config"
-                  onClick={() => setShowConfigModal(true)}
-                >
-                  ⚙️ Google Setup
-                </button>
+                <span className="signin-google-badge">Google-only sign-in</span>
               </div>
             </section>
           </div>

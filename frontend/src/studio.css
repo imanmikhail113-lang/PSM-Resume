@@ -156,87 +156,19 @@ html{scroll-behavior:smooth}body{overflow:auto;background:var(--studio-bg);color
   color: #0f172a;
 }
 
+.signin-lead {
+  font-size: 13px;
+  line-height: 1.6;
+  color: #94a3b8;
+  margin: 0 0 16px;
+}
+
 /* Workspace Entry Actions */
 .workspace-entry-actions {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  margin: 16px 0 10px;
-}
-
-.btn-guest-entry {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  width: 100%;
-  padding: 14px 18px;
-  background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 50%, #1e40af 100%);
-  color: #ffffff;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 14px;
-  box-shadow: 0 8px 24px rgba(37, 99, 235, 0.35);
-  font-family: inherit;
-  text-align: left;
-  cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
-}
-.btn-guest-entry:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 12px 30px rgba(37, 99, 235, 0.45);
-  filter: brightness(1.08);
-}
-.btn-guest-entry:active:not(:disabled) {
-  transform: translateY(0);
-}
-.btn-guest-entry:disabled {
-  opacity: 0.65;
-  cursor: wait;
-}
-.guest-icon {
-  font-size: 24px;
-  line-height: 1;
-}
-.guest-label {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-.guest-label strong {
-  font-size: 13px;
-  font-weight: 600;
-  color: #ffffff;
-  letter-spacing: -0.2px;
-}
-.guest-label small {
-  font-size: 10px;
-  color: rgba(255, 255, 255, 0.8);
-}
-.guest-arrow {
-  font-size: 18px;
-  font-weight: 700;
-  color: #ffffff;
-  opacity: 0.9;
-}
-
-.auth-divider {
-  display: flex;
-  align-items: center;
-  text-align: center;
-  margin: 6px 0;
-}
-.auth-divider::before,
-.auth-divider::after {
-  content: '';
-  flex: 1;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-.auth-divider span {
-  padding: 0 10px;
-  font-size: 8px;
-  font-weight: 600;
-  letter-spacing: 1.5px;
-  color: #94a3b8;
+  margin: 8px 0 14px;
 }
 
 .google-button-container {
@@ -277,16 +209,17 @@ html{scroll-behavior:smooth}body{overflow:auto;background:var(--studio-bg);color
   font-weight: 500;
   cursor: pointer;
 }
-.fallback-guest-btn {
-  flex: 1;
-  padding: 10px 14px;
-  background: rgba(59, 130, 246, 0.2);
-  border: 1px solid rgba(59, 130, 246, 0.4);
-  border-radius: 10px;
-  color: #93c5fd;
-  font-size: 11px;
+
+.signin-google-badge {
+  font-size: 9px;
   font-weight: 600;
-  cursor: pointer;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: #60a5fa;
+  background: rgba(37, 99, 235, 0.12);
+  border: 1px solid rgba(59, 130, 246, 0.25);
+  padding: 3px 8px;
+  border-radius: 99px;
 }
 
 .link-config {

@@ -94,7 +94,7 @@ class AuthenticationTests(unittest.TestCase):
 
     def test_password_routes_removed(self):
         r=self.sign_in()
-        for route in ('login','register','verify-email','reset-password'):
+        for route in ('login','register','verify-email','reset-password','guest'):
             response=self.client.post('/api/auth/'+route,json={},headers={'X-CSRF-Token':r.json['csrf_token']})
             self.assertEqual(response.status_code,404)
 

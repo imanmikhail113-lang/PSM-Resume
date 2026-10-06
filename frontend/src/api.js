@@ -28,16 +28,6 @@ export async function apiFetch(url, options = {}) {
   return response;
 }
 
-export async function guestLogin(details = {}) {
-  const data = await authRequest('guest', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(details),
-  });
-  rememberSession(data);
-  return data;
-}
-
 export async function authRequest(path, options = {}) {
   const { onRetry, ...requestOptions } = options;
   // Configuration reads have longer patience to allow cloud cold-starts.

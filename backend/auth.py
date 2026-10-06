@@ -49,13 +49,13 @@ def configure_auth(app):
             expected = session.get('csrf', '')
             if not expected or not secrets.compare_digest(supplied.encode(), expected.encode()):
                 return jsonify(message='Session expired. Refresh and try again.'), 403
-        public = ('/', '/api/health', '/api/auth/config', '/api/auth/google', '/api/auth/guest', '/api/auth/session', '/api/db-status')
+        public = ('/', '/api/health', '/api/auth/config', '/api/auth/google', '/api/auth/session', '/api/db-status')
         if request.path in public:
             return None
         record = session_record()
         uid = record.user_id if record else None
         if not uid:
-            return jsonify(message='Sign in to continue.'), 401
+            return jsonify(message='Sign in with Google to continue.'), 401
         # Legacy route signatures remain compatible, but never authorize a caller ID.
         payload = request.get_json(silent=True) or {}
         if not isinstance(payload, dict):
@@ -75,51 +75,6 @@ def config():
     session['nonce'] = secrets.token_urlsafe(32)
     return jsonify(client_id=os.environ.get('GOOGLE_CLIENT_ID', ''),
                    csrf_token=session['csrf'], nonce=session['nonce'])
-
-
-@auth.post('/api/auth/guest')
-def guest_login():
-    """Enable instant, reliable access for UTHM students, supervisors, and evaluators."""
-    payload = request.get_json(silent=True) or {}
-    email = (payload.get('email') or 'student@siswa.uthm.edu.my').strip().lower()
-    name = (payload.get('name') or 'UTHM Student').strip()
-
-    user = User.query.filter_by(email=email).first()
-    if not user:
-        user = User(email=email, username=name, password_hash='!uthm-guest')
-        db.session.add(user)
-        try:
-            db.session.commit()
-        except IntegrityError:
-            db.session.rollback()
-            user = User.query.filter_by(email=email).first()
-    elif name and user.username != name:
-        user.username = name
-        try:
-            db.session.commit()
-        except Exception:
-            db.session.rollback()
-
-    if not user:
-        return jsonify(message='Unable to initialize student account.'), 500
-
-    previous = session_record()
-    if previous:
-        db.session.delete(previous)
-
-    token = secrets.token_urlsafe(32)
-    db.session.add(AuthSession(
-        token_hash=hashlib.sha256(token.encode()).hexdigest(),
-        user_id=user.id,
-        expires_at=datetime.utcnow() + timedelta(days=7)
-    ))
-    db.session.commit()
-
-    session.clear()
-    session.permanent = True
-    session['sid'] = token
-    session['csrf'] = secrets.token_urlsafe(32)
-    return jsonify(**profile(user), csrf_token=session['csrf'])
 
 
 @auth.post('/api/auth/google')
