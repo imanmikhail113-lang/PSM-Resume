@@ -1,4 +1,4 @@
-# Intelligent Resume Analyzer
+# 1Intelligent Resume Analyzer
 
 An AI-powered web platform designed to analyze, score, and optimize resumes to pass Applicant Tracking Systems (ATS) and human screeners. 
 
