@@ -7,37 +7,25 @@ function Login({ onLoginSuccess }) {
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [showChooserModal, setShowChooserModal] = useState(false);
-
-  const [customEmail, setCustomEmail] = useState('');
-  const [customName, setCustomName] = useState('');
-  const [showCustomInput, setShowCustomInput] = useState(false);
-
-  // Accounts recognized in this browser (only accounts legitimately used on this device)
-  const [browserAccounts, setBrowserAccounts] = useState(() => {
-    try {
-      const saved = JSON.parse(localStorage.getItem('saved_google_accounts') || '[]');
-      return Array.isArray(saved) ? saved.filter((acc) => acc && acc.email) : [];
-    } catch (e) {
-      return [];
-    }
+  const [googleClientId, setGoogleClientId] = useState(() => {
+    return import.meta.env.VITE_GOOGLE_CLIENT_ID || localStorage.getItem('google_client_id') || '';
   });
+  const [showConfigModal, setShowConfigModal] = useState(false);
+  const [inputClientId, setInputClientId] = useState('');
 
-  const handleRemoveAccount = (e, emailToRemove) => {
-    e.stopPropagation();
-    const updated = browserAccounts.filter(
-      (acc) => acc.email?.toLowerCase() !== emailToRemove.toLowerCase()
-    );
-    setBrowserAccounts(updated);
+  // Automatically purge any mock or invalid entries from localStorage on load
+  useEffect(() => {
     try {
-      localStorage.setItem('saved_google_accounts', JSON.stringify(updated));
-      if (localStorage.getItem('user_email')?.toLowerCase() === emailToRemove.toLowerCase()) {
+      localStorage.removeItem('saved_google_accounts');
+      const email = localStorage.getItem('user_email');
+      if (email && (!email.includes('@') || !email.includes('.') || email.length < 5)) {
         localStorage.removeItem('user_email');
+        localStorage.removeItem('user_id');
         localStorage.removeItem('user_username');
         localStorage.removeItem('user_avatar');
       }
-    } catch (err) {}
-  };
+    } catch (e) {}
+  }, []);
 
   // ═══════════════════════════════════════════════════════════════════════════
   // INTERACTIVE GEOMETRIC BACKGROUND CONTROLS (Removed for public)
@@ -463,13 +451,11 @@ function Login({ onLoginSuccess }) {
   }, []);
 
   // ═══════════════════════════════════════════════════════════════════════════
-  // GOOGLE AUTHENTICATION LOGIC
+  // GOOGLE IDENTITY SERVICES AUTHENTICATION
   // ═══════════════════════════════════════════════════════════════════════════
-  const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
   const googleBtnContainerRef = useRef(null);
-  const modalGoogleBtnContainerRef = useRef(null);
 
-  const handleGoogleAuth = async ({ credential, email, name, picture }) => {
+  const handleGoogleAuth = async ({ credential }) => {
     setLoading(true);
     setError(null);
     setSuccess(null);
@@ -477,7 +463,7 @@ function Login({ onLoginSuccess }) {
       const response = await fetch(`${API_BASE_URL}/api/auth/google`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ credential, email, name, picture }),
+        body: JSON.stringify({ credential }),
       });
 
       const data = await response.json();
@@ -490,32 +476,6 @@ function Login({ onLoginSuccess }) {
           localStorage.setItem('user_avatar', data.picture);
         }
 
-        try {
-          const saved = JSON.parse(localStorage.getItem('saved_google_accounts') || '[]');
-          const currentList = Array.isArray(saved) ? saved : [];
-          if (data.email) {
-            const existingIndex = currentList.findIndex(
-              (acc) => acc?.email?.toLowerCase() === data.email.toLowerCase()
-            );
-            const userAcc = {
-              name: data.username || data.email.split('@')[0],
-              email: data.email,
-              avatar: (data.username || data.email).slice(0, 2).toUpperCase(),
-              picture: data.picture,
-              bg: 'linear-gradient(135deg, #4285F4, #34A853)',
-              lastLogin: Date.now(),
-            };
-            if (existingIndex >= 0) {
-              currentList[existingIndex] = { ...currentList[existingIndex], ...userAcc };
-            } else {
-              currentList.push(userAcc);
-            }
-            localStorage.setItem('saved_google_accounts', JSON.stringify(currentList));
-            setBrowserAccounts(currentList);
-          }
-        } catch (e) {}
-
-        setShowChooserModal(false);
         setTimeout(() => {
           onLoginSuccess(data.user_id);
         }, 600);
@@ -529,52 +489,36 @@ function Login({ onLoginSuccess }) {
     }
   };
 
-  const handleCustomSubmit = async (e) => {
-    e.preventDefault();
-    if (!customEmail || !customEmail.includes('@')) {
-      setError('Please provide a valid Google or student email address.');
-      return;
-    }
-    const cleanEmail = customEmail.trim().toLowerCase();
-    const cleanName = customName.trim() || cleanEmail.split('@')[0];
-    await handleGoogleAuth({ email: cleanEmail, name: cleanName });
-  };
-
   useEffect(() => {
     const handleCredentialResponse = async (response) => {
       if (!response.credential) return;
       await handleGoogleAuth({ credential: response.credential });
     };
 
-    const renderButtons = () => {
+    const initGoogleIdentity = () => {
       if (window.google?.accounts?.id && googleClientId) {
         try {
           window.google.accounts.id.initialize({
             client_id: googleClientId,
             callback: handleCredentialResponse,
             auto_select: false,
+            cancel_on_tap_outside: false,
           });
 
+          // 1. Render Google's official Sign In button
           if (googleBtnContainerRef.current) {
+            googleBtnContainerRef.current.innerHTML = '';
             window.google.accounts.id.renderButton(googleBtnContainerRef.current, {
               theme: 'filled_blue',
               size: 'large',
               width: 300,
               text: 'continue_with',
               shape: 'pill',
+              logo_alignment: 'left',
             });
           }
 
-          if (modalGoogleBtnContainerRef.current) {
-            window.google.accounts.id.renderButton(modalGoogleBtnContainerRef.current, {
-              theme: 'outline',
-              size: 'large',
-              width: 320,
-              text: 'signin_with',
-              shape: 'rectangular',
-            });
-          }
-
+          // 2. Automatically prompt One Tap so user sees browser-connected Google accounts immediately!
           window.google.accounts.id.prompt();
         } catch (err) {
           console.warn('Google GSI init note:', err);
@@ -583,29 +527,38 @@ function Login({ onLoginSuccess }) {
     };
 
     if (window.google?.accounts?.id) {
-      renderButtons();
+      initGoogleIdentity();
     } else {
       const script = document.createElement('script');
       script.src = 'https://accounts.google.com/gsi/client';
       script.async = true;
       script.defer = true;
-      script.onload = renderButtons;
+      script.onload = initGoogleIdentity;
       document.body.appendChild(script);
     }
-  }, [googleClientId, showChooserModal]);
+  }, [googleClientId]);
 
-  const handleGoogleClick = () => {
+  const handleManualGoogleClick = () => {
     setError(null);
-    if (window.google?.accounts?.id && googleClientId) {
+    if (!googleClientId) {
+      setShowConfigModal(true);
+      return;
+    }
+    if (window.google?.accounts?.id) {
       try {
-        window.google.accounts.id.prompt((notification) => {
-          if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-            setShowChooserModal(true);
-          }
-        });
+        window.google.accounts.id.prompt();
       } catch (e) {}
     }
-    setShowChooserModal(true);
+  };
+
+  const handleSaveClientId = (e) => {
+    e.preventDefault();
+    const trimmed = inputClientId.trim();
+    if (!trimmed) return;
+    localStorage.setItem('google_client_id', trimmed);
+    setGoogleClientId(trimmed);
+    setShowConfigModal(false);
+    setSuccess('Google OAuth Client ID saved! Initializing Google Account connection...');
   };
 
   return (
@@ -639,7 +592,7 @@ function Login({ onLoginSuccess }) {
                 <span className="google-auth-badge">UTHM SSO GATEWAY</span>
                 <h2 className="google-auth-title">Sign In with Google</h2>
                 <p className="google-auth-subtitle">
-                  Single Sign-On access for students, researchers, and recruiters
+                  Choose a Google account connected with your browser to continue
                 </p>
               </div>
 
@@ -647,47 +600,63 @@ function Login({ onLoginSuccess }) {
               {success && <div className="minimal-alert minimal-alert-success">{success}</div>}
 
               <div className="google-auth-action-box">
-                {googleClientId && (
-                  <div 
-                    ref={googleBtnContainerRef} 
-                    className="google-native-btn-container"
-                  />
+                {googleClientId ? (
+                  <>
+                    <div 
+                      ref={googleBtnContainerRef} 
+                      className="google-native-btn-container"
+                    />
+                    <button
+                      type="button"
+                      className="google-login-btn"
+                      onClick={handleManualGoogleClick}
+                      disabled={loading}
+                      aria-label="Choose Google Account"
+                      style={{ marginTop: '0.5rem' }}
+                    >
+                      <svg className="google-icon" width="22" height="22" viewBox="0 0 24 24">
+                        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
+                        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
+                      </svg>
+                      <span>{loading ? 'Connecting with Google...' : 'Choose Google Account'}</span>
+                    </button>
+                  </>
+                ) : (
+                  <div className="google-clientid-notice">
+                    <button
+                      type="button"
+                      className="google-login-btn"
+                      onClick={() => setShowConfigModal(true)}
+                      aria-label="Connect Google OAuth"
+                    >
+                      <svg className="google-icon" width="22" height="22" viewBox="0 0 24 24">
+                        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
+                        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
+                      </svg>
+                      <span>Connect Google Browser Account</span>
+                    </button>
+                    <p style={{ fontSize: '0.78rem', color: '#94a3b8', marginTop: '0.6rem', textAlign: 'center' }}>
+                      Click to configure your Google OAuth Client ID to automatically detect Chrome accounts.
+                    </p>
+                  </div>
                 )}
-
-                <button
-                  type="button"
-                  className="google-login-btn"
-                  onClick={handleGoogleClick}
-                  disabled={loading}
-                  aria-label="Continue with Google"
-                >
-                  <svg className="google-icon" width="22" height="22" viewBox="0 0 24 24">
-                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
-                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
-                  </svg>
-                  <span>
-                    {loading 
-                      ? 'Connecting with Google...' 
-                      : browserAccounts.length > 0 
-                        ? 'Choose Account or Sign In' 
-                        : 'Continue with Google'}
-                  </span>
-                </button>
               </div>
 
               <div className="google-auth-divider">
-                <span>Google Account Only</span>
+                <span>Google Verified Only</span>
               </div>
 
               <div className="google-security-notice">
                 <div className="security-badge-item">
                   <span>🔒</span>
-                  <span>Protected by Google OAuth 2.0 Encryption</span>
+                  <span>Direct Google Identity Services OAuth 2.0</span>
                 </div>
                 <p className="security-subtext">
-                  Supports student accounts (<strong>@siswa.uthm.edu.my</strong>) & personal Google accounts.
+                  Directly uses your browser-connected Google accounts. No passwords or manual email entry.
                 </p>
               </div>
             </div>
@@ -695,14 +664,14 @@ function Login({ onLoginSuccess }) {
         </div>
       )}
 
-      {/* Google Account Chooser Modal */}
-      {showChooserModal && (
-        <div className="google-chooser-overlay" onClick={() => setShowChooserModal(false)}>
+      {/* Google Client ID Configuration Modal */}
+      {showConfigModal && (
+        <div className="google-chooser-overlay" onClick={() => setShowConfigModal(false)}>
           <div className="google-chooser-card" onClick={(e) => e.stopPropagation()}>
             <button 
               type="button" 
               className="modal-close" 
-              onClick={() => setShowChooserModal(false)}
+              onClick={() => setShowConfigModal(false)}
               aria-label="Close"
             >
               ×
@@ -715,124 +684,29 @@ function Login({ onLoginSuccess }) {
                 <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
                 <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
               </svg>
-              <h3>Sign in with Google</h3>
-              <p>Choose an account or sign in to continue to <strong>Intelligent Resume</strong></p>
+              <h3>Google OAuth Configuration</h3>
+              <p>Google requires an OAuth Client ID to connect with accounts in your browser</p>
             </div>
 
-            {/* Official Google Button inside modal if Client ID available */}
-            {googleClientId && (
-              <div 
-                ref={modalGoogleBtnContainerRef} 
-                className="google-native-btn-container"
+            <form onSubmit={handleSaveClientId} style={{ marginTop: '1rem' }}>
+              <label style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-secondary, #94a3b8)', display: 'block', marginBottom: '0.4rem' }}>
+                Google Web Client ID:
+              </label>
+              <input
+                type="text"
+                className="google-custom-input"
+                placeholder="e.g. xxxxxxxx-xxxxxxxx.apps.googleusercontent.com"
+                value={inputClientId}
+                onChange={(e) => setInputClientId(e.target.value)}
+                required
               />
-            )}
-
-            {/* List of previously used accounts on this browser */}
-            {browserAccounts.length > 0 ? (
-              <div style={{ marginBottom: '1rem' }}>
-                <div className="google-chooser-section-title">Accounts on this device</div>
-                <div className="google-accounts-list">
-                  {browserAccounts.map((account) => (
-                    <div key={account.email} className="google-account-row">
-                      <button
-                        type="button"
-                        className="google-account-btn"
-                        onClick={() => handleGoogleAuth({ email: account.email, name: account.name, picture: account.picture })}
-                        disabled={loading}
-                      >
-                        <div className="google-account-avatar" style={account.bg ? { background: account.bg } : {}}>
-                          {account.picture ? (
-                            <img
-                              src={account.picture}
-                              alt={account.name}
-                              style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }}
-                            />
-                          ) : (
-                            account.avatar || (account.name || account.email).slice(0, 2).toUpperCase()
-                          )}
-                        </div>
-                        <div className="google-account-meta">
-                          <span className="google-account-name">{account.name || account.email.split('@')[0]}</span>
-                          <span className="google-account-email">{account.email}</span>
-                        </div>
-                      </button>
-                      <button
-                        type="button"
-                        className="google-account-remove-btn"
-                        onClick={(e) => handleRemoveAccount(e, account.email)}
-                        title="Remove from this browser"
-                        aria-label="Remove account"
-                      >
-                        ✕
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ) : (
-              <div className="google-no-accounts-msg">
-                <span>💡</span>
-                <span>No Google accounts remembered yet on this browser. Sign in below:</span>
-              </div>
-            )}
-
-            {/* Custom Google Account Entry / Add Account */}
-            <div className="google-custom-entry">
-              {browserAccounts.length > 0 && !showCustomInput ? (
-                <button
-                  type="button"
-                  className="google-use-another-btn"
-                  onClick={() => setShowCustomInput(true)}
-                >
-                  <span>＋</span>
-                  <span>Use another Google account</span>
-                </button>
-              ) : (
-                <form onSubmit={handleCustomSubmit} className="google-custom-form">
-                  <div className="google-custom-form-header">
-                    <label className="google-custom-label">
-                      {browserAccounts.length > 0 ? 'Use another Google account:' : 'Enter your Google email:'}
-                    </label>
-                    {browserAccounts.length > 0 && (
-                      <button 
-                        type="button" 
-                        className="google-custom-cancel-btn"
-                        onClick={() => setShowCustomInput(false)}
-                      >
-                        Cancel
-                      </button>
-                    )}
-                  </div>
-                  <input
-                    type="email"
-                    className="google-custom-input"
-                    placeholder="e.g. name@gmail.com or @siswa.uthm.edu.my"
-                    value={customEmail}
-                    onChange={(e) => setCustomEmail(e.target.value)}
-                    required
-                    autoFocus={showCustomInput || browserAccounts.length === 0}
-                  />
-                  <input
-                    type="text"
-                    className="google-custom-input"
-                    placeholder="Full Name (optional)"
-                    value={customName}
-                    onChange={(e) => setCustomName(e.target.value)}
-                  />
-                  <button
-                    type="submit"
-                    className="google-custom-submit"
-                    disabled={loading || !customEmail.trim()}
-                  >
-                    {loading ? 'Connecting with Google...' : 'Continue with Google Account'}
-                  </button>
-                  <div className="google-supported-domains">
-                    <span>✓ Personal (@gmail.com)</span>
-                    <span>✓ UTHM Siswa (@siswa.uthm.edu.my)</span>
-                  </div>
-                </form>
-              )}
-            </div>
+              <button type="submit" className="google-custom-submit" style={{ marginTop: '0.5rem' }}>
+                Save & Connect Google Accounts
+              </button>
+              <p style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '0.75rem', lineHeight: 1.4 }}>
+                ℹ️ You can also add <code>VITE_GOOGLE_CLIENT_ID=your_id</code> in <code>frontend/.env</code>.
+              </p>
+            </form>
           </div>
         </div>
       )}
