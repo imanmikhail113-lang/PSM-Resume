@@ -7,12 +7,13 @@ from modules.document.parser import extract_text_from_pdf
 from modules.database.models import db, ResumeAnalysis, User, TargetedScan, UserImage, ITJob, DiscoveryScan
 from modules.nlp.ai_parser import analyze_targeted_compatibility, analyze_profile_image
 from werkzeug.utils import secure_filename
-from werkzeug.security import generate_password_hash, check_password_hash
+from auth import configure_auth
 
 load_dotenv()
 
-app = Flask(__name__)
-CORS(app) # Enable CORS for frontend
+app = Flask(__name__, static_folder=None)
+CORS(app, origins=os.environ.get('FRONTEND_ORIGIN', 'http://localhost:5173,http://127.0.0.1:5173').split(','), supports_credentials=True)
+configure_auth(app)
 
 # Configure Uploads
 UPLOAD_FOLDER = os.path.join(app.root_path, 'static', 'uploads', 'images')
@@ -374,7 +375,11 @@ def init_db_background(flask_app):
         
         seed_it_jobs()
 
-# Spawn background thread for table creation/seeding without delaying server startup
+# Create authentication tables before accepting requests; seed jobs in background.
+with app.app_context():
+    db.create_all()
+
+# Background legacy-schema verification and job seeding
 threading.Thread(target=init_db_background, args=(app,), daemon=True).start()
 
 
@@ -408,152 +413,6 @@ def db_status():
             "provider": "Unknown",
             "message": str(e)
         }), 500
-
-@app.route('/api/auth/google', methods=['POST'])
-def google_auth():
-    data = request.get_json() or {}
-    token = data.get('credential')
-
-    if not token:
-        return jsonify({
-            "status": "error",
-            "message": "Valid Google OAuth credential is required. Please choose your Google account."
-        }), 400
-
-    email = None
-    name = None
-    picture = None
-
-    client_id = os.environ.get('GOOGLE_CLIENT_ID')
-    verified = False
-
-    # 1. Attempt official verification via google.oauth2 if available
-    try:
-        from google.oauth2 import id_token
-        from google.auth.transport import requests as google_requests
-        id_info = id_token.verify_oauth2_token(token, google_requests.Request(), client_id)
-        email = id_info.get('email')
-        name = id_info.get('name')
-        picture = id_info.get('picture')
-        verified = True
-    except Exception:
-        pass
-
-    # 2. Cryptographic decode and Google issuer verification
-    if not verified:
-        try:
-            import base64
-            parts = token.split('.')
-            if len(parts) >= 2:
-                padding = 4 - (len(parts[1]) % 4)
-                payload_bytes = base64.urlsafe_b64decode(parts[1] + '=' * padding)
-                payload = json.loads(payload_bytes.decode('utf-8'))
-                issuer = payload.get('iss', '')
-                if issuer not in ['accounts.google.com', 'https://accounts.google.com']:
-                    return jsonify({"status": "error", "message": "Invalid Google token issuer."}), 400
-                email = payload.get('email')
-                name = payload.get('name')
-                picture = payload.get('picture')
-        except Exception as err:
-            return jsonify({"status": "error", "message": f"Failed to parse Google credential: {err}"}), 400
-
-    if not email or '@' not in email:
-        return jsonify({"status": "error", "message": "No valid verified email found in Google token."}), 400
-
-    email = email.strip().lower()
-
-    # Find existing user or auto-register new Google user
-    user = User.query.filter_by(email=email).first()
-    if not user:
-        base_username = (name or email.split('@')[0]).strip()
-        username = base_username
-        suffix = 1
-        while User.query.filter_by(username=username).first():
-            username = f"{base_username}_{suffix}"
-            suffix += 1
-
-        dummy_pw = generate_password_hash(os.urandom(24).hex())
-        user = User(email=email, username=username, password_hash=dummy_pw)
-        db.session.add(user)
-        db.session.commit()
-
-    return jsonify({
-        "status": "success",
-        "user_id": user.id,
-        "email": user.email,
-        "username": user.username,
-        "picture": picture,
-        "message": f"Successfully authenticated as {user.username}."
-    })
-
-@app.route('/api/auth/register', methods=['POST'])
-def register():
-    data = request.get_json()
-    email = data.get('email')
-    password = data.get('password')
-    username = data.get('username')
-    
-    if not email or not password or not username:
-        return jsonify({"status": "error", "message": "Username, email and password required."}), 400
-        
-    if User.query.filter_by(email=email).first():
-        return jsonify({"status": "error", "message": "User already exists."}), 400
-        
-    if User.query.filter_by(username=username).first():
-        return jsonify({"status": "error", "message": "Username already taken."}), 400
-        
-    hashed_pw = generate_password_hash(password, method='pbkdf2:sha256:50000')
-    new_user = User(email=email, password_hash=hashed_pw, username=username)
-    db.session.add(new_user)
-    db.session.commit()
-    
-    return jsonify({"status": "success", "user_id": new_user.id, "username": new_user.username, "message": "Registered successfully."})
-
-@app.route('/api/auth/login', methods=['POST'])
-def login():
-    data = request.get_json()
-    email = data.get('email')
-    password = data.get('password')
-    
-    user = User.query.filter_by(email=email).first()
-    if user and check_password_hash(user.password_hash, password):
-        return jsonify({"status": "success", "user_id": user.id, "email": user.email, "username": user.username or user.email.split('@')[0]})
-    
-    return jsonify({"status": "error", "message": "Invalid credentials."}), 401
-
-@app.route('/api/auth/verify-email', methods=['POST'])
-def verify_email():
-    data = request.get_json()
-    email = data.get('email')
-    
-    if not email:
-        return jsonify({"status": "error", "message": "Email is required."}), 400
-        
-    user = User.query.filter_by(email=email).first()
-    if user:
-        return jsonify({"status": "success", "message": "Email is valid."})
-    
-    return jsonify({"status": "error", "message": "Email not found in database."}), 404
-
-@app.route('/api/auth/reset-password', methods=['POST'])
-def reset_password():
-    data = request.get_json()
-    email = data.get('email')
-    new_password = data.get('new_password')
-    
-    if not email or not new_password:
-        return jsonify({"status": "error", "message": "Email and new password are required."}), 400
-        
-    user = User.query.filter_by(email=email).first()
-    if not user:
-        return jsonify({"status": "error", "message": "User not found."}), 404
-        
-    hashed_pw = generate_password_hash(new_password)
-    user.password_hash = hashed_pw
-    db.session.commit()
-    
-    return jsonify({"status": "success", "message": "Password reset successfully."})
-
 
 @app.route('/api/history/<int:user_id>', methods=['GET'])
 def get_history(user_id):

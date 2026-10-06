@@ -3,6 +3,17 @@ from datetime import datetime
 
 db = SQLAlchemy()
 
+class GoogleIdentity(db.Model):
+    __tablename__ = 'google_identities'
+    subject = db.Column(db.String(255), primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), unique=True, nullable=False)
+
+class AuthSession(db.Model):
+    __tablename__ = 'auth_sessions'
+    token_hash = db.Column(db.String(64), primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    expires_at = db.Column(db.DateTime, nullable=False)
+
 class User(db.Model):
     __tablename__ = 'users'
     

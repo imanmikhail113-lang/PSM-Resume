@@ -14,6 +14,7 @@ import {
 } from 'chart.js';
 import { Line, Doughnut, Bar } from 'react-chartjs-2';
 import './index.css';
+import { apiFetch, API_BASE_URL } from './api';
 
 ChartJS.register(
   CategoryScale,
@@ -28,7 +29,7 @@ ChartJS.register(
   ArcElement
 );
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
 
 const resolveImageUrl = (path) => {
   if (!path) return '';
@@ -76,7 +77,7 @@ function Dashboard({ onLogout, userId, theme = 'dark' }) {
   const [discoveryResult, setDiscoveryResult] = useState(null);
 
   // Benchmark State
-  const [userScore, setUserScore] = useState(51); // Can be adjusted or set via props/analysis result
+  const [userScore, setUserScore] = useState(0); // Can be adjusted or set via props/analysis result
   const benchmarkScore = 70;
 
   const [dbStatus, setDbStatus] = useState({ connected: false, provider: 'Checking...' });
@@ -92,7 +93,7 @@ function Dashboard({ onLogout, userId, theme = 'dark' }) {
 
   const safeFetchJson = async (url, retries = 1, delayMs = 1200) => {
     try {
-      const response = await fetch(url);
+      const response = await apiFetch(url);
       if (!response.ok) return null;
       return await response.json();
     } catch (err) {
@@ -128,8 +129,8 @@ function Dashboard({ onLogout, userId, theme = 'dark' }) {
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
       const gradient = ctx.createLinearGradient(0, 0, 0, 400);
-      gradient.addColorStop(0, 'rgba(59, 130, 246, 0.8)');
-      gradient.addColorStop(1, 'rgba(59, 130, 246, 0.0)');
+      gradient.addColorStop(0, 'rgba(255, 52, 75, 0.35)');
+      gradient.addColorStop(1, 'rgba(255, 52, 75, 0.0)');
       
       setChartData({
         labels: labels.length ? labels : ['v1'],
@@ -138,10 +139,10 @@ function Dashboard({ onLogout, userId, theme = 'dark' }) {
           data: scores.length ? scores : [0],
           fill: true,
           backgroundColor: gradient,
-          borderColor: '#3b82f6',
+          borderColor: '#ff344b',
           borderWidth: 3,
           pointBackgroundColor: '#ffffff',
-          pointBorderColor: '#3b82f6',
+          pointBorderColor: '#ff344b',
           pointBorderWidth: 2,
           pointRadius: 6,
           pointHoverRadius: 8,
@@ -150,18 +151,7 @@ function Dashboard({ onLogout, userId, theme = 'dark' }) {
       });
     } else {
       setHistoryList([]);
-      setChartData({
-        labels: ['v1'],
-        datasets: [{
-          label: 'ATS Compatibility Score',
-          data: [0],
-          fill: true,
-          borderColor: '#3b82f6',
-          backgroundColor: 'rgba(59, 130, 246, 0.1)',
-          pointRadius: 4,
-          tension: 0.4,
-        }]
-      });
+      setChartData({ labels: [], datasets: [] });
     }
   };
 
@@ -480,7 +470,7 @@ function Dashboard({ onLogout, userId, theme = 'dark' }) {
     datasets: [
       {
         data: [userScore, benchmarkScore],
-        backgroundColor: ['#3b82f6', '#fcd34d'], // blue, yellow
+        backgroundColor: ['#ff344b', '#fcd34d'], // blue, yellow
         borderRadius: 4,
         barThickness: 80,
       }
@@ -601,7 +591,7 @@ function Dashboard({ onLogout, userId, theme = 'dark' }) {
     formData.append('user_id', userId);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/analyze`, {
+      const response = await apiFetch(`${API_BASE_URL}/api/analyze`, {
         method: 'POST',
         body: formData,
       });
@@ -647,7 +637,7 @@ function Dashboard({ onLogout, userId, theme = 'dark' }) {
     formData.append('user_id', userId);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/analyze/image`, {
+      const response = await apiFetch(`${API_BASE_URL}/api/analyze/image`, {
         method: 'POST',
         body: formData
       });
@@ -671,7 +661,7 @@ function Dashboard({ onLogout, userId, theme = 'dark' }) {
     setIsAnalyzingTargeted(true);
     setError(null);
     try {
-      const response = await fetch(`${API_BASE_URL}/api/analyze/targeted`, {
+      const response = await apiFetch(`${API_BASE_URL}/api/analyze/targeted`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -702,7 +692,7 @@ function Dashboard({ onLogout, userId, theme = 'dark' }) {
     setIsAnalyzingDiscovery(true);
     setError(null);
     try {
-      const response = await fetch(`${API_BASE_URL}/api/analyze/discovery`, {
+      const response = await apiFetch(`${API_BASE_URL}/api/analyze/discovery`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ user_id: userId })
@@ -728,7 +718,7 @@ function Dashboard({ onLogout, userId, theme = 'dark' }) {
       {/* Sidebar */}
       <aside className="sidebar">
         <div className="sidebar-header">
-          <img src="/new uthm.png" alt="UTHM Logo" className="sidebar-logo" />
+          <div className="workspace-brand"><span className="brand-symbol">↗</span>resume<span className="brand-dot">.</span></div><p className="workspace-subtitle">YOUR CAREER WORKSPACE</p>
         </div>
         <nav className="sidebar-nav">
           <a 
@@ -773,10 +763,10 @@ function Dashboard({ onLogout, userId, theme = 'dark' }) {
               width: '8px', 
               height: '8px', 
               borderRadius: '50%', 
-              backgroundColor: dbStatus.connected ? (dbStatus.provider === 'Supabase' ? '#10b981' : '#3b82f6') : '#ef4444',
-              boxShadow: dbStatus.connected ? `0 0 8px ${dbStatus.provider === 'Supabase' ? '#10b981' : '#3b82f6'}` : 'none'
+              backgroundColor: dbStatus.connected ? (dbStatus.provider === 'Supabase' ? '#10b981' : '#ff344b') : '#ef4444',
+              boxShadow: dbStatus.connected ? `0 0 8px ${dbStatus.provider === 'Supabase' ? '#10b981' : '#ff344b'}` : 'none'
             }}></span>
-            {dbStatus.connected ? `${dbStatus.provider} Active` : 'DB Disconnected'}
+            {dbStatus.connected ? 'Workspace connected' : 'Connection unavailable'}
           </div>
           <button onClick={onLogout} className="btn-logout">⏻ Log out</button>
         </div>
@@ -787,14 +777,15 @@ function Dashboard({ onLogout, userId, theme = 'dark' }) {
         {activeTab === 'USER HUB' && (
           <>
             <header className="content-header">
-              <h1 style={{ textTransform: 'none' }}>Welcome, <span className="gradient-text">{username}</span></h1>
+              <p className="workspace-eyebrow">YOUR NEXT CHAPTER</p><h1 style={{ textTransform: 'none' }}>Welcome, <span className="gradient-text">{username}</span></h1><p className="workspace-description">A little progress today. A stronger application tomorrow.</p>
             </header>
 
-            <section className="dashboard-grid">
+            <div className="workspace-steps"><span>01 / Upload your resume</span><span>02 / Discover your strengths</span><span>03 / Find your next move</span></div><section className="dashboard-grid">
               {/* Chart Section */}
               <div className="glass-panel chart-panel">
                 <h3 className="section-title">RESUME IMPROVEMENT TREND</h3>
                 <div className="chart-container">
+                  {chartData.datasets.length === 0 && <div className="chart-empty"><span>↗</span><strong>Your progress starts here</strong><p>Upload your first resume to see your score and track improvements over time.</p></div>}
                   {chartData.datasets.length > 0 && (
                     <Line ref={chartRef} data={chartData} options={chartOptions} />
                   )}
@@ -813,7 +804,7 @@ function Dashboard({ onLogout, userId, theme = 'dark' }) {
                   />
                   <label htmlFor="resume-upload" className="upload-label">
                     <div className="upload-icon">☁️</div>
-                    <div className="upload-text">Drag & Drop your resume (PDF) or Click to Upload</div>
+                    <div className="upload-text">Choose your resume · PDF</div>
                   </label>
                 </div>
                 
@@ -870,7 +861,7 @@ function Dashboard({ onLogout, userId, theme = 'dark' }) {
                       </span>
                     </>
                   ) : (
-                    "RUN GENERAL ANALYSIS"
+                    "Analyze my resume ↗"
                   )}
                 </button>
 
@@ -1854,7 +1845,7 @@ function Dashboard({ onLogout, userId, theme = 'dark' }) {
                            targetedResult ? targetedResult.compatibility_score : 56,
                            targetedResult ? 100 - targetedResult.compatibility_score : 44
                          ],
-                         backgroundColor: ['#3b82f6', 'rgba(255,255,255,0.05)'],
+                         backgroundColor: ['#ff344b', 'rgba(255,255,255,0.05)'],
                          borderWidth: 0,
                          cutout: '75%',
                        }]

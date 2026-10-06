@@ -37,3 +37,5 @@ Thumbs.db
 # Test outputs
 *.pdf
 !public/*.pdf
+
+!.env.example
