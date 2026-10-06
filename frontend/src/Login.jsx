@@ -1,6 +1,5 @@
 import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { authRequest, rememberSession } from './api';
-import FeedbackFAB from './FeedbackFAB';
 
 const ResumeScene = lazy(() => import('./ResumeScene'));
 let googleScript;
@@ -405,9 +404,6 @@ export default function Login({ onLoginSuccess, restoringSession = false }) {
         </div>
         <a href="#top" className="footer-top-link">Back to top <span className="brand-dot">↑</span></a>
       </footer>
-
-      {/* Floating Action Button for Feedback */}
-      <FeedbackFAB />
     </div>
   );
 }
