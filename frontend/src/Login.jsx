@@ -9,50 +9,35 @@ function Login({ onLoginSuccess }) {
   const [loading, setLoading] = useState(false);
   const [showChooserModal, setShowChooserModal] = useState(false);
 
-  // Accounts recognized in this browser
-  const [browserAccounts, setBrowserAccounts] = useState(() => {
-    const defaultAccounts = [
-      {
-        name: 'Iman Mikhail',
-        email: 'imanmikhail113@gmail.com',
-        avatar: 'IM',
-        bg: 'linear-gradient(135deg, #4285F4, #34A853)'
-      },
-      {
-        name: 'Mikhail (UTHM Siswa)',
-        email: 'mikhail@siswa.uthm.edu.my',
-        avatar: 'U',
-        bg: 'linear-gradient(135deg, #0d1b54, #3b82f6)'
-      }
-    ];
+  const [customEmail, setCustomEmail] = useState('');
+  const [customName, setCustomName] = useState('');
+  const [showCustomInput, setShowCustomInput] = useState(false);
 
+  // Accounts recognized in this browser (only accounts legitimately used on this device)
+  const [browserAccounts, setBrowserAccounts] = useState(() => {
     try {
       const saved = JSON.parse(localStorage.getItem('saved_google_accounts') || '[]');
-      const lastEmail = localStorage.getItem('user_email');
-      const lastUsername = localStorage.getItem('user_username');
-      const lastAvatar = localStorage.getItem('user_avatar');
-
-      const combined = [...defaultAccounts];
-      saved.forEach((acc) => {
-        if (acc?.email && !combined.some((c) => c.email.toLowerCase() === acc.email.toLowerCase())) {
-          combined.push(acc);
-        }
-      });
-
-      if (lastEmail && !combined.some((c) => c.email.toLowerCase() === lastEmail.toLowerCase())) {
-        combined.push({
-          name: lastUsername || lastEmail.split('@')[0],
-          email: lastEmail,
-          avatar: (lastUsername || lastEmail).slice(0, 2).toUpperCase(),
-          picture: lastAvatar,
-          bg: 'linear-gradient(135deg, #8b5cf6, #3b82f6)'
-        });
-      }
-      return combined;
+      return Array.isArray(saved) ? saved.filter((acc) => acc && acc.email) : [];
     } catch (e) {
-      return defaultAccounts;
+      return [];
     }
   });
+
+  const handleRemoveAccount = (e, emailToRemove) => {
+    e.stopPropagation();
+    const updated = browserAccounts.filter(
+      (acc) => acc.email?.toLowerCase() !== emailToRemove.toLowerCase()
+    );
+    setBrowserAccounts(updated);
+    try {
+      localStorage.setItem('saved_google_accounts', JSON.stringify(updated));
+      if (localStorage.getItem('user_email')?.toLowerCase() === emailToRemove.toLowerCase()) {
+        localStorage.removeItem('user_email');
+        localStorage.removeItem('user_username');
+        localStorage.removeItem('user_avatar');
+      }
+    } catch (err) {}
+  };
 
   // ═══════════════════════════════════════════════════════════════════════════
   // INTERACTIVE GEOMETRIC BACKGROUND CONTROLS (Removed for public)
@@ -478,134 +463,11 @@ function Login({ onLoginSuccess }) {
   }, []);
 
   // ═══════════════════════════════════════════════════════════════════════════
-  // NEXT.JS EXPORT CODE STRING
-  // ═══════════════════════════════════════════════════════════════════════════
-  const nextJsExportCode = `'use client';
-import React, { useEffect, useRef } from 'react';
-
-export default function ResumeGeometryBackground({
-  speed = 1.0,
-  parallaxDamping = 0.05,
-  density = 1.0,
-  children
-}: {
-  speed?: number;
-  parallaxDamping?: number;
-  density?: number;
-  children?: React.ReactNode;
-}) {
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    let animId: number;
-    let width = (canvas.width = window.innerWidth);
-    let height = (canvas.height = window.innerHeight);
-    let mouse = { x: width / 2, y: height / 2, targetX: width / 2, targetY: height / 2 };
-
-    const handleResize = () => {
-      if (!canvas) return;
-      width = canvas.width = window.innerWidth;
-      height = canvas.height = window.innerHeight;
-    };
-    const handleMouse = (e: MouseEvent) => {
-      mouse.targetX = e.clientX;
-      mouse.targetY = e.clientY;
-    };
-
-    window.addEventListener('resize', handleResize);
-    window.addEventListener('mousemove', handleMouse);
-
-    // Entities: Dog-eared resume sheets & ontology skill graph nodes
-    const skillList = ['Python', 'LLM', 'Embeddings', 'RAG', 'PyTorch', 'NLP', 'FastAPI', 'React', 'Docker'];
-    const nodes = skillList.map((label) => ({
-      x: Math.random() * width,
-      y: Math.random() * height,
-      vx: (Math.random() - 0.5) * 0.25,
-      vy: (Math.random() - 0.5) * 0.25,
-      label
-    }));
-
-    let time = 0;
-    const render = () => {
-      time += 0.008 * speed;
-      mouse.x += (mouse.targetX - mouse.x) * parallaxDamping;
-      mouse.y += (mouse.targetY - mouse.y) * parallaxDamping;
-      const pNormX = (mouse.x - width / 2) / (width / 2);
-      const pNormY = (mouse.y - height / 2) / (height / 2);
-
-      // Obsidian Slate Backdrop
-      ctx.fillStyle = '#050508';
-      ctx.fillRect(0, 0, width, height);
-
-      // Render connected skills graph
-      for (let i = 0; i < nodes.length; i++) {
-        const nA = nodes[i];
-        nA.x += nA.vx * speed;
-        nA.y += nA.vy * speed;
-        if (nA.x < -20) nA.x = width + 20;
-        if (nA.x > width + 20) nA.x = -20;
-        if (nA.y < -20) nA.y = height + 20;
-        if (nA.y > height + 20) nA.y = -20;
-
-        const pX = nA.x + pNormX * 18;
-        const pY = nA.y + pNormY * 18;
-
-        for (let j = i + 1; j < nodes.length; j++) {
-          const nB = nodes[j];
-          const dist = Math.hypot((nB.x + pNormX * 18) - pX, (nB.y + pNormY * 18) - pY);
-          if (dist < 160) {
-            ctx.strokeStyle = \`rgba(147, 197, 253, \${(1 - dist / 160) * 0.12})\`;
-            ctx.beginPath();
-            ctx.moveTo(pX, pY);
-            ctx.lineTo(nB.x + pNormX * 18, nB.y + pNormY * 18);
-            ctx.stroke();
-          }
-        }
-        ctx.fillStyle = 'rgba(56, 189, 248, 0.45)';
-        ctx.beginPath();
-        ctx.arc(pX, pY, 3, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.font = '10px Inter, sans-serif';
-        ctx.fillStyle = 'rgba(148, 163, 184, 0.22)';
-        ctx.fillText(nA.label, pX + 8, pY + 3);
-      }
-
-      animId = requestAnimationFrame(render);
-    };
-    render();
-
-    return () => {
-      window.removeEventListener('resize', handleResize);
-      window.removeEventListener('mousemove', handleMouse);
-      cancelAnimationFrame(animId);
-    };
-  }, [speed, parallaxDamping, density]);
-
-  return (
-    <div style={{ position: 'relative', width: '100vw', height: '100vh', overflow: 'hidden' }}>
-      <canvas ref={canvasRef} style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }} />
-      <div style={{ position: 'relative', zIndex: 10, width: '100%', height: '100%' }}>
-        {children}
-      </div>
-    </div>
-  );
-}`;
-
-  const copyToClipboard = () => {
-    navigator.clipboard.writeText(nextJsExportCode);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-
-  // ═══════════════════════════════════════════════════════════════════════════
   // GOOGLE AUTHENTICATION LOGIC
   // ═══════════════════════════════════════════════════════════════════════════
   const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+  const googleBtnContainerRef = useRef(null);
+  const modalGoogleBtnContainerRef = useRef(null);
 
   const handleGoogleAuth = async ({ credential, email, name, picture }) => {
     setLoading(true);
@@ -630,27 +492,33 @@ export default function ResumeGeometryBackground({
 
         try {
           const saved = JSON.parse(localStorage.getItem('saved_google_accounts') || '[]');
-          if (data.email && !saved.some((acc) => acc?.email?.toLowerCase() === data.email.toLowerCase())) {
-            const newAcc = {
+          const currentList = Array.isArray(saved) ? saved : [];
+          if (data.email) {
+            const existingIndex = currentList.findIndex(
+              (acc) => acc?.email?.toLowerCase() === data.email.toLowerCase()
+            );
+            const userAcc = {
               name: data.username || data.email.split('@')[0],
               email: data.email,
               avatar: (data.username || data.email).slice(0, 2).toUpperCase(),
               picture: data.picture,
-              bg: 'linear-gradient(135deg, #8b5cf6, #3b82f6)',
+              bg: 'linear-gradient(135deg, #4285F4, #34A853)',
+              lastLogin: Date.now(),
             };
-            saved.push(newAcc);
-            localStorage.setItem('saved_google_accounts', JSON.stringify(saved));
-            setBrowserAccounts((prev) => {
-              if (prev.some((p) => p?.email?.toLowerCase() === data.email.toLowerCase())) return prev;
-              return [...prev, newAcc];
-            });
+            if (existingIndex >= 0) {
+              currentList[existingIndex] = { ...currentList[existingIndex], ...userAcc };
+            } else {
+              currentList.push(userAcc);
+            }
+            localStorage.setItem('saved_google_accounts', JSON.stringify(currentList));
+            setBrowserAccounts(currentList);
           }
         } catch (e) {}
 
         setShowChooserModal(false);
         setTimeout(() => {
           onLoginSuccess(data.user_id);
-        }, 700);
+        }, 600);
       } else {
         setError(data.message || 'Google sign-in failed. Please try again.');
       }
@@ -661,50 +529,80 @@ export default function ResumeGeometryBackground({
     }
   };
 
+  const handleCustomSubmit = async (e) => {
+    e.preventDefault();
+    if (!customEmail || !customEmail.includes('@')) {
+      setError('Please provide a valid Google or student email address.');
+      return;
+    }
+    const cleanEmail = customEmail.trim().toLowerCase();
+    const cleanName = customName.trim() || cleanEmail.split('@')[0];
+    await handleGoogleAuth({ email: cleanEmail, name: cleanName });
+  };
+
   useEffect(() => {
     const handleCredentialResponse = async (response) => {
       if (!response.credential) return;
       await handleGoogleAuth({ credential: response.credential });
     };
 
-    if (window.google && googleClientId) {
-      try {
-        window.google.accounts.id.initialize({
-          client_id: googleClientId,
-          callback: handleCredentialResponse,
-        });
-      } catch (err) {
-        console.warn('Google GSI init note:', err);
+    const renderButtons = () => {
+      if (window.google?.accounts?.id && googleClientId) {
+        try {
+          window.google.accounts.id.initialize({
+            client_id: googleClientId,
+            callback: handleCredentialResponse,
+            auto_select: false,
+          });
+
+          if (googleBtnContainerRef.current) {
+            window.google.accounts.id.renderButton(googleBtnContainerRef.current, {
+              theme: 'filled_blue',
+              size: 'large',
+              width: 300,
+              text: 'continue_with',
+              shape: 'pill',
+            });
+          }
+
+          if (modalGoogleBtnContainerRef.current) {
+            window.google.accounts.id.renderButton(modalGoogleBtnContainerRef.current, {
+              theme: 'outline',
+              size: 'large',
+              width: 320,
+              text: 'signin_with',
+              shape: 'rectangular',
+            });
+          }
+
+          window.google.accounts.id.prompt();
+        } catch (err) {
+          console.warn('Google GSI init note:', err);
+        }
       }
+    };
+
+    if (window.google?.accounts?.id) {
+      renderButtons();
     } else {
       const script = document.createElement('script');
       script.src = 'https://accounts.google.com/gsi/client';
       script.async = true;
       script.defer = true;
-      script.onload = () => {
-        if (window.google && googleClientId) {
-          try {
-            window.google.accounts.id.initialize({
-              client_id: googleClientId,
-              callback: handleCredentialResponse,
-            });
-          } catch (e) {}
-        }
-      };
+      script.onload = renderButtons;
       document.body.appendChild(script);
     }
-  }, [googleClientId]);
+  }, [googleClientId, showChooserModal]);
 
   const handleGoogleClick = () => {
     setError(null);
-    if (window.google && googleClientId) {
+    if (window.google?.accounts?.id && googleClientId) {
       try {
         window.google.accounts.id.prompt((notification) => {
           if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
             setShowChooserModal(true);
           }
         });
-        return;
       } catch (e) {}
     }
     setShowChooserModal(true);
@@ -723,7 +621,7 @@ export default function ResumeGeometryBackground({
             <img src="/new uthm.png" alt="UTHM Logo" className="minimal-login-logo" />
           </div>
 
-          {/* Headline with interactive hover effect (spread single line) */}
+          {/* Headline with interactive hover effect */}
           <h1 className="minimal-login-headline" data-text="INTELLIGENT RESUME">
             INTELLIGENT RESUME
           </h1>
@@ -749,6 +647,13 @@ export default function ResumeGeometryBackground({
               {success && <div className="minimal-alert minimal-alert-success">{success}</div>}
 
               <div className="google-auth-action-box">
+                {googleClientId && (
+                  <div 
+                    ref={googleBtnContainerRef} 
+                    className="google-native-btn-container"
+                  />
+                )}
+
                 <button
                   type="button"
                   className="google-login-btn"
@@ -762,7 +667,13 @@ export default function ResumeGeometryBackground({
                     <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
                     <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
                   </svg>
-                  <span>{loading ? 'Connecting with Google...' : 'Continue with Google'}</span>
+                  <span>
+                    {loading 
+                      ? 'Connecting with Google...' 
+                      : browserAccounts.length > 0 
+                        ? 'Choose Account or Sign In' 
+                        : 'Continue with Google'}
+                  </span>
                 </button>
               </div>
 
@@ -805,35 +716,122 @@ export default function ResumeGeometryBackground({
                 <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
               </svg>
               <h3>Sign in with Google</h3>
-              <p>Choose an account to continue to <strong>Intelligent Resume</strong></p>
+              <p>Choose an account or sign in to continue to <strong>Intelligent Resume</strong></p>
             </div>
 
-            <div className="google-accounts-list">
-              {browserAccounts.map((account) => (
+            {/* Official Google Button inside modal if Client ID available */}
+            {googleClientId && (
+              <div 
+                ref={modalGoogleBtnContainerRef} 
+                className="google-native-btn-container"
+              />
+            )}
+
+            {/* List of previously used accounts on this browser */}
+            {browserAccounts.length > 0 ? (
+              <div style={{ marginBottom: '1rem' }}>
+                <div className="google-chooser-section-title">Accounts on this device</div>
+                <div className="google-accounts-list">
+                  {browserAccounts.map((account) => (
+                    <div key={account.email} className="google-account-row">
+                      <button
+                        type="button"
+                        className="google-account-btn"
+                        onClick={() => handleGoogleAuth({ email: account.email, name: account.name, picture: account.picture })}
+                        disabled={loading}
+                      >
+                        <div className="google-account-avatar" style={account.bg ? { background: account.bg } : {}}>
+                          {account.picture ? (
+                            <img
+                              src={account.picture}
+                              alt={account.name}
+                              style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }}
+                            />
+                          ) : (
+                            account.avatar || (account.name || account.email).slice(0, 2).toUpperCase()
+                          )}
+                        </div>
+                        <div className="google-account-meta">
+                          <span className="google-account-name">{account.name || account.email.split('@')[0]}</span>
+                          <span className="google-account-email">{account.email}</span>
+                        </div>
+                      </button>
+                      <button
+                        type="button"
+                        className="google-account-remove-btn"
+                        onClick={(e) => handleRemoveAccount(e, account.email)}
+                        title="Remove from this browser"
+                        aria-label="Remove account"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div className="google-no-accounts-msg">
+                <span>💡</span>
+                <span>No Google accounts remembered yet on this browser. Sign in below:</span>
+              </div>
+            )}
+
+            {/* Custom Google Account Entry / Add Account */}
+            <div className="google-custom-entry">
+              {browserAccounts.length > 0 && !showCustomInput ? (
                 <button
-                  key={account.email}
                   type="button"
-                  className="google-account-btn"
-                  onClick={() => handleGoogleAuth({ email: account.email, name: account.name, picture: account.picture })}
-                  disabled={loading}
+                  className="google-use-another-btn"
+                  onClick={() => setShowCustomInput(true)}
                 >
-                  <div className="google-account-avatar" style={account.bg ? { background: account.bg } : {}}>
-                    {account.picture ? (
-                      <img
-                        src={account.picture}
-                        alt={account.name}
-                        style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }}
-                      />
-                    ) : (
-                      account.avatar || account.name.slice(0, 2).toUpperCase()
+                  <span>＋</span>
+                  <span>Use another Google account</span>
+                </button>
+              ) : (
+                <form onSubmit={handleCustomSubmit} className="google-custom-form">
+                  <div className="google-custom-form-header">
+                    <label className="google-custom-label">
+                      {browserAccounts.length > 0 ? 'Use another Google account:' : 'Enter your Google email:'}
+                    </label>
+                    {browserAccounts.length > 0 && (
+                      <button 
+                        type="button" 
+                        className="google-custom-cancel-btn"
+                        onClick={() => setShowCustomInput(false)}
+                      >
+                        Cancel
+                      </button>
                     )}
                   </div>
-                  <div className="google-account-meta">
-                    <span className="google-account-name">{account.name}</span>
-                    <span className="google-account-email">{account.email}</span>
+                  <input
+                    type="email"
+                    className="google-custom-input"
+                    placeholder="e.g. name@gmail.com or @siswa.uthm.edu.my"
+                    value={customEmail}
+                    onChange={(e) => setCustomEmail(e.target.value)}
+                    required
+                    autoFocus={showCustomInput || browserAccounts.length === 0}
+                  />
+                  <input
+                    type="text"
+                    className="google-custom-input"
+                    placeholder="Full Name (optional)"
+                    value={customName}
+                    onChange={(e) => setCustomName(e.target.value)}
+                  />
+                  <button
+                    type="submit"
+                    className="google-custom-submit"
+                    disabled={loading || !customEmail.trim()}
+                  >
+                    {loading ? 'Connecting with Google...' : 'Continue with Google Account'}
+                  </button>
+                  <div className="google-supported-domains">
+                    <span>✓ Personal (@gmail.com)</span>
+                    <span>✓ UTHM Siswa (@siswa.uthm.edu.my)</span>
                   </div>
-                </button>
-              ))}
+                </form>
+              )}
             </div>
           </div>
         </div>
