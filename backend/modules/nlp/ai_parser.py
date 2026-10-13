@@ -73,6 +73,14 @@ def generate_with_gemini_cascade(client: genai.Client, contents, schema, tempera
             return parsed
         except Exception as e:
             last_error = e
+            err_str = str(e)
+            if "PERMISSION_DENIED" in err_str or "leaked" in err_str.lower() or "API_KEY_INVALID" in err_str:
+                print(f"[Gemini Cascade] Permanent auth/permission error ({type(e).__name__}: {e}). Aborting cascade.")
+                raise RuntimeError(
+                    "Your Gemini API key was reported as leaked or is invalid (403 PERMISSION_DENIED). "
+                    "Please generate a new API key at https://aistudio.google.com/app/apikey "
+                    "and update GEMINI_API_KEY in your environment (.env / Render)."
+                ) from e
             print(f"[Gemini Cascade] Model {model_name} failed or rate limited ({type(e).__name__}: {e}). Trying next model...")
             time.sleep(1)
             continue
