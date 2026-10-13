@@ -12,6 +12,7 @@ import {
   Legend,
   ArcElement,
 } from 'chart.js';
+import { Line, Doughnut, Bar } from 'react-chartjs-2';
 import './index.css';
 import { apiFetch, API_BASE_URL } from './api';
 
@@ -127,9 +128,11 @@ function Dashboard({ onLogout, userId, theme = 'dark' }) {
       
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
-      const gradient = ctx.createLinearGradient(0, 0, 0, 400);
-      gradient.addColorStop(0, 'rgba(255, 52, 75, 0.35)');
-      gradient.addColorStop(1, 'rgba(255, 52, 75, 0.0)');
+      const gradient = ctx ? ctx.createLinearGradient(0, 0, 0, 400) : 'rgba(255, 52, 75, 0.35)';
+      if (ctx) {
+        gradient.addColorStop(0, 'rgba(255, 52, 75, 0.35)');
+        gradient.addColorStop(1, 'rgba(255, 52, 75, 0.0)');
+      }
       
       setChartData({
         labels: labels.length ? labels : ['v1'],
