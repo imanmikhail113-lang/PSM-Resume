@@ -16,6 +16,12 @@ def sanitize_error_message(err) -> str:
     if not err:
         return "An internal server error occurred."
     msg = str(err)
+    if "leaked" in msg.lower():
+        return (
+            "Gemini API key was revoked or reported as leaked. "
+            "Please generate a new API key in Google AI Studio (https://aistudio.google.com/app/apikey) "
+            "and update GEMINI_API_KEY in your environment (.env / Render)."
+        )
     # Mask Gemini / Google API keys (AIzaSy...)
     msg = re.sub(r'AIzaSy[A-Za-z0-9_-]{33}', '[REDACTED_API_KEY]', msg)
     # Mask database connection URLs with passwords (e.g. postgresql://user:password@host...)
