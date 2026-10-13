@@ -12,7 +12,6 @@ import {
   Legend,
   ArcElement,
 } from 'chart.js';
-import { Line, Doughnut, Bar } from 'react-chartjs-2';
 import './index.css';
 import { apiFetch, API_BASE_URL } from './api';
 
@@ -31,7 +30,7 @@ ChartJS.register(
 
 
 
-const resolveImageUrl = (path) => {
+const _resolveImageUrl = (path) => {
   if (!path) return '';
   if (path.startsWith('http://') || path.startsWith('https://') || path.startsWith('blob:') || path.startsWith('data:')) {
     return path;
@@ -96,7 +95,7 @@ function Dashboard({ onLogout, userId, theme = 'dark' }) {
       const response = await apiFetch(url);
       if (!response.ok) return null;
       return await response.json();
-    } catch (err) {
+    } catch {
       if (retries > 0) {
         await new Promise(r => setTimeout(r, delayMs));
         return safeFetchJson(url, retries - 1, delayMs);
@@ -611,7 +610,7 @@ function Dashboard({ onLogout, userId, theme = 'dark' }) {
         setLoading(false);
         setError(data.message || "An error occurred during analysis.");
       }
-    } catch (err) {
+    } catch {
       cancelProgress();
       setLoading(false);
       setError("Failed to connect to the server. Is the backend running?");
@@ -649,7 +648,7 @@ function Dashboard({ onLogout, userId, theme = 'dark' }) {
       } else {
         setError(data.message || 'Image analysis failed.');
       }
-    } catch (err) {
+    } catch {
       setError('Could not connect to server.');
     } finally {
       setIsAnalyzingImage(false);
@@ -680,7 +679,7 @@ function Dashboard({ onLogout, userId, theme = 'dark' }) {
       } else {
         setError(data.message || 'Targeted analysis failed.');
       }
-    } catch (err) {
+    } catch {
       setError('Could not connect to server.');
     } finally {
       setIsAnalyzingTargeted(false);
@@ -706,7 +705,7 @@ function Dashboard({ onLogout, userId, theme = 'dark' }) {
       } else {
         setError(data.message || 'Discovery scan failed.');
       }
-    } catch (err) {
+    } catch {
       setError('Could not connect to server.');
     } finally {
       setIsAnalyzingDiscovery(false);
