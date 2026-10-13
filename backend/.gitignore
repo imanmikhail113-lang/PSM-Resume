@@ -6,4 +6,7 @@ __pycache__/
 *.log
 
 !.env.example
-instance/preview.db
+*.db
+*.sqlite
+*.sqlite3
+instance/
