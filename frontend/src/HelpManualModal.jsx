@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 
 export default function HelpManualModal({ isOpen, onClose }) {
-  const PDF_URL = '/Resume%20Analyzer%20Manual%20Guide.pdf';
+  const PDF_URL = '/resume-manual-guide.pdf';
 
   useEffect(() => {
     if (!isOpen) return;
@@ -68,19 +68,6 @@ export default function HelpManualModal({ isOpen, onClose }) {
               </svg>
               <span>Open in New Tab</span>
             </a>
-            <a
-              href={PDF_URL}
-              download="Resume Analyzer Manual Guide.pdf"
-              className="pdf-modal-btn"
-              title="Download PDF file"
-            >
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                <polyline points="7 10 12 15 17 10" />
-                <line x1="12" y1="15" x2="12" y2="3" />
-              </svg>
-              <span>Download</span>
-            </a>
             <button
               type="button"
               onClick={onClose}
@@ -97,11 +84,18 @@ export default function HelpManualModal({ isOpen, onClose }) {
         </div>
 
         <div className="pdf-modal-body">
-          <iframe
-            src={`${PDF_URL}#toolbar=1&navpanes=1&view=FitH`}
-            title="Resume Analyzer Manual Guide"
+          <object
+            data={`${PDF_URL}#toolbar=1&navpanes=1&view=FitH`}
+            type="application/pdf"
             className="pdf-iframe-viewer"
-          />
+            title="Resume Analyzer Manual Guide"
+          >
+            <iframe
+              src={`${PDF_URL}#toolbar=1&navpanes=1&view=FitH`}
+              title="Resume Analyzer Manual Guide"
+              className="pdf-iframe-viewer"
+            />
+          </object>
         </div>
       </div>
     </div>
