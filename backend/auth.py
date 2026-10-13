@@ -2,7 +2,7 @@
 import os
 import secrets
 import hashlib
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from flask import Blueprint, jsonify, request, session
 from google.oauth2 import id_token
 from google.auth.transport.requests import Request
@@ -16,12 +16,16 @@ def profile(user):
     return dict(user_id=user.id, email=user.email, username=user.username)
 
 
+def utc_now():
+    return datetime.now(timezone.utc).replace(tzinfo=None)
+
+
 def session_record():
     token = session.get('sid')
     if not token:
         return None
     record = db.session.get(AuthSession, hashlib.sha256(token.encode()).hexdigest())
-    return record if record and record.expires_at > datetime.utcnow() else None
+    return record if record and record.expires_at > utc_now() else None
 
 
 def configure_auth(app):
@@ -124,7 +128,7 @@ def google_login():
         db.session.delete(previous)
     token = secrets.token_urlsafe(32)
     db.session.add(AuthSession(token_hash=hashlib.sha256(token.encode()).hexdigest(),
-                              user_id=user.id, expires_at=datetime.utcnow() + timedelta(days=7)))
+                              user_id=user.id, expires_at=utc_now() + timedelta(days=7)))
     db.session.commit()
     session.clear()
     session.permanent = True
@@ -139,7 +143,8 @@ def current_session():
     user = db.session.get(User, record.user_id) if record else None
     if not user:
         return jsonify(message='Not signed in.'), 401
-    return jsonify(**profile(user), csrf_token=session['csrf'])
+    csrf = session.setdefault('csrf', secrets.token_urlsafe(32))
+    return jsonify(**profile(user), csrf_token=csrf)
 
 
 @auth.post('/api/auth/logout')
