@@ -55,6 +55,10 @@ class SecurityAndRateLimitingTests(unittest.TestCase):
         self.assertNotIn("SecretPassword123", sanitized_db)
         self.assertIn("****", sanitized_db)
 
+        leaked_error = "{'error': {'code': 403, 'message': 'Your API key was reported as leaked. Please use another API key.', 'status': 'PERMISSION_DENIED'}}"
+        sanitized_leaked = sanitize_error_message(leaked_error)
+        self.assertIn("revoked or reported as leaked", sanitized_leaked)
+
     def test_login_rate_limiting_blocks_spam(self):
         """Verify that more than 3 login attempts within 60s return HTTP 429."""
         claims = dict(
