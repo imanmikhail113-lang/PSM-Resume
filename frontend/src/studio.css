@@ -409,7 +409,23 @@ html{scroll-behavior:smooth}body{overflow:auto;background:var(--studio-bg);color
   color: #f1f5f9;
 }
 
-/* Floating Action Button (Feedback FAB) */
+/* Floating Action Buttons & Dock */
+.floating-actions-dock {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 1000;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.floating-actions-dock .feedback-fab {
+  position: static;
+  bottom: auto;
+  right: auto;
+}
+
 .feedback-fab {
   position: fixed;
   bottom: 24px;
@@ -488,13 +504,296 @@ html{scroll-behavior:smooth}body{overflow:auto;background:var(--studio-bg);color
   opacity: 1;
 }
 
+/* Need Help? FAB Button */
+.help-fab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  border-radius: 9999px;
+  color: #f8fafc;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+  box-shadow: 
+    0 10px 25px -5px rgba(0, 0, 0, 0.5),
+    0 0 15px rgba(56, 189, 248, 0.2);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
+  user-select: none;
+}
+
+.help-fab-btn:hover {
+  transform: translateY(-3px) scale(1.02);
+  background: rgba(30, 41, 59, 0.95);
+  border-color: rgba(56, 189, 248, 0.7);
+  color: #ffffff;
+  box-shadow: 
+    0 15px 30px -5px rgba(0, 0, 0, 0.6),
+    0 0 25px rgba(56, 189, 248, 0.45);
+}
+
+.help-fab-btn:active {
+  transform: translateY(0) scale(0.98);
+}
+
+.help-fab-btn:focus-visible {
+  outline: 2px solid #38bdf8;
+  outline-offset: 3px;
+}
+
+.help-pulse-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: #38bdf8;
+  box-shadow: 0 0 8px #38bdf8;
+  animation: helpPulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes helpPulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.85); }
+}
+
+.help-icon {
+  display: flex;
+  align-items: center;
+  color: #38bdf8;
+}
+
+/* ═══════════════════════════════════════════
+   PDF MANUAL GUIDE POPUP MODAL
+   ═══════════════════════════════════════════ */
+
+.pdf-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(3, 7, 18, 0.82);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 99999;
+  padding: 1.5rem;
+  animation: pdfFadeIn 0.25s ease-out forwards;
+}
+
+@keyframes pdfFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.pdf-modal-window {
+  position: relative;
+  width: 94vw;
+  max-width: 1200px;
+  height: 88vh;
+  max-height: 960px;
+  background: linear-gradient(160deg, rgba(15, 23, 42, 0.98), rgba(24, 33, 53, 0.96));
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  border-radius: 20px;
+  box-shadow: 
+    0 25px 60px -15px rgba(0, 0, 0, 0.85),
+    0 0 35px rgba(56, 189, 248, 0.2);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: pdfModalScaleIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes pdfModalScaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.94) translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.pdf-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.4rem;
+  background: rgba(15, 23, 42, 0.7);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  flex-shrink: 0;
+}
+
+.pdf-modal-header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.pdf-modal-icon-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: rgba(56, 189, 248, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  color: #38bdf8;
+  flex-shrink: 0;
+}
+
+.pdf-modal-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.pdf-modal-title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #f8fafc;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pdf-modal-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(56, 189, 248, 0.15);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  color: #7dd3fc;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.pdf-modal-subtitle {
+  margin: 2px 0 0 0;
+  font-size: 0.775rem;
+  color: #94a3b8;
+}
+
+.pdf-modal-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.pdf-modal-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 13px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #e2e8f0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.pdf-modal-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(56, 189, 248, 0.5);
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.pdf-modal-close-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #94a3b8;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.pdf-modal-close-btn:hover {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: rgba(239, 68, 68, 0.4);
+  color: #f87171;
+  transform: rotate(90deg);
+}
+
+.pdf-modal-body {
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  position: relative;
+  background: #0f172a;
+}
+
+.pdf-iframe-viewer {
+  width: 100%;
+  height: 100%;
+  border: none;
+  display: block;
+}
+
 @media (max-width: 640px) {
-  .feedback-fab {
+  .floating-actions-dock {
     bottom: calc(16px + env(safe-area-inset-bottom, 0px));
     right: 16px;
-    padding: 8px 14px;
+    gap: 8px;
+  }
+
+  .help-fab-btn,
+  .feedback-fab {
+    padding: 8px 13px;
     font-size: 12px;
     gap: 6px;
   }
+
+  .pdf-modal-overlay {
+    padding: 0.75rem;
+  }
+
+  .pdf-modal-window {
+    width: 100%;
+    height: 92vh;
+    border-radius: 16px;
+  }
+
+  .pdf-modal-header {
+    padding: 0.85rem 1rem;
+  }
+
+  .pdf-modal-btn span {
+    display: none;
+  }
+
+  .pdf-modal-btn {
+    padding: 7px;
+  }
+
+  .pdf-modal-subtitle {
+    display: none;
+  }
 }
+
 
