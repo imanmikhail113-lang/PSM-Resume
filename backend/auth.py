@@ -8,6 +8,7 @@ from google.oauth2 import id_token
 from google.auth.transport.requests import Request
 from sqlalchemy.exc import IntegrityError
 from modules.database.models import db, User, GoogleIdentity, AuthSession
+from rate_limiter import rate_limit
 
 auth = Blueprint('auth', __name__)
 
@@ -74,6 +75,7 @@ def configure_auth(app):
 
 
 @auth.get('/api/auth/config')
+@rate_limit(max_requests=int(os.environ.get('CONFIG_RATE_LIMIT', 30)), window_seconds=60, key_prefix='auth_config')
 def config():
     session.setdefault('csrf', secrets.token_urlsafe(32))
     session['nonce'] = secrets.token_urlsafe(32)
@@ -82,6 +84,12 @@ def config():
 
 
 @auth.post('/api/auth/google')
+@rate_limit(
+    max_requests=int(os.environ.get('LOGIN_RATE_LIMIT', 5)),
+    window_seconds=int(os.environ.get('LOGIN_RATE_WINDOW', 60)),
+    key_prefix='login',
+    message='Too many login attempts. Please wait a minute before trying again.'
+)
 def google_login():
     client_id = os.environ.get('GOOGLE_CLIENT_ID')
     if not client_id:
@@ -138,6 +146,7 @@ def google_login():
 
 
 @auth.get('/api/auth/session')
+@rate_limit(max_requests=int(os.environ.get('SESSION_RATE_LIMIT', 45)), window_seconds=60, key_prefix='auth_session')
 def current_session():
     record = session_record()
     user = db.session.get(User, record.user_id) if record else None
