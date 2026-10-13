@@ -5,6 +5,12 @@ export default function FeedbackFAB() {
   const [isHelpOpen, setIsHelpOpen] = useState(false);
   const FEEDBACK_URL = 'https://forms.gle/H2RrNcbwdQNs5oQa8';
 
+  // Prevent rendering floating action dock inside iframes or embedded modals to avoid recursive popups
+  const isEmbedded = typeof window !== 'undefined' && window.self !== window.top;
+  if (isEmbedded) {
+    return null;
+  }
+
   return (
     <>
       <div className="floating-actions-dock" id="floating-actions-dock">
