@@ -31,20 +31,20 @@ class ResumeStructure(BaseModel):
     certifications: Optional[List[str]] = Field(description="List of certifications")
     languages: Optional[List[str]] = Field(description="Languages spoken")
     keywords: List[str] = Field(description="Key professional terms extracted from the entire resume")
-    missing_information: Optional[List[str]] = Field(default=[], description="Important sections or details missing from the resume (e.g. 'Missing contact number', 'No education section', 'No work experience')")
-    need_fixing: Optional[List[str]] = Field(default=[], description="Specific, actionable guides on what needs fixing (e.g. 'Use strong action verbs in work experience', 'Quantify achievements with metrics')")
+    missing_information: Optional[List[str]] = Field(default_factory=list, description="Important sections or details missing from the resume (e.g. 'Missing contact number', 'No education section', 'No work experience')")
+    need_fixing: Optional[List[str]] = Field(default_factory=list, description="Specific, actionable guides on what needs fixing (e.g. 'Use strong action verbs in work experience', 'Quantify achievements with metrics')")
     ats_score: int = Field(description="A calculated ATS score from 0 to 100 representing how well formatted and impactful this resume is.")
     action_verbs_count: int = Field(description="The number of strong action verbs found in the experience section.")
 
-# Ranked by quota & throughput: 500 RPD models first, followed by 20 RPD fallbacks
+# Ranked by availability, speed and quota: fast and stable models first, followed by fallbacks
 FALLBACK_MODELS = [
-    'gemini-3.5-flash-lite',  # Primary: 15 RPM / 500 RPD
-    'gemini-3.1-flash-lite',  # Secondary: 15 RPM / 500 RPD
-    'gemini-3.6-flash',       # Tertiary: 5 RPM / 20 RPD
-    'gemini-3.7-flash',       # 5 RPM / 20 RPD
-    'gemini-3.8-flash',       # 5 RPM / 20 RPD
-    'gemini-3.5-flash',       # 5 RPM / 20 RPD
-    'gemini-2.5-flash',       # 5 RPM / 20 RPD
+    'gemini-2.5-flash',       # Primary: fast, stable, multimodal
+    'gemini-3.6-flash',       # Secondary
+    'gemini-3.5-flash',       # Tertiary
+    'gemini-3.5-flash-lite',  # High quota fallback
+    'gemini-3.1-flash-lite',
+    'gemini-3.7-flash',
+    'gemini-3.8-flash',
 ]
 
 def generate_with_gemini_cascade(client: genai.Client, contents, schema, temperature: float = 0.1) -> dict:
@@ -52,6 +52,7 @@ def generate_with_gemini_cascade(client: genai.Client, contents, schema, tempera
     Executes a Gemini structured generation request with automatic model cascading.
     If a model hits 429 Rate Limit, 503 Overload, or 404, it immediately attempts the next model in the pool.
     """
+    import time
     last_error = None
     for model_name in FALLBACK_MODELS:
         try:
@@ -62,6 +63,7 @@ def generate_with_gemini_cascade(client: genai.Client, contents, schema, tempera
                     response_mime_type="application/json",
                     response_schema=schema,
                     temperature=temperature,
+                    http_options=types.HttpOptions(timeout=25000),
                 ),
             )
             parsed = json.loads(response.text)
@@ -72,6 +74,7 @@ def generate_with_gemini_cascade(client: genai.Client, contents, schema, tempera
         except Exception as e:
             last_error = e
             print(f"[Gemini Cascade] Model {model_name} failed or rate limited ({type(e).__name__}: {e}). Trying next model...")
+            time.sleep(1)
             continue
             
     raise RuntimeError(f"All Gemini models in cascade failed. Last error: {last_error}")
