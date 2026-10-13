@@ -4,7 +4,9 @@ import pymysql
 
 load_dotenv()
 uri = os.environ.get('SQLALCHEMY_DATABASE_URI', 'mysql+pymysql://root:@localhost/psm_db')
-print("DB URI:", uri)
+if uri:
+    import re
+    print("DB URI:", re.sub(r':([^@]+)@', ':***@', uri))
 
 # Parse uri
 # mysql+pymysql://root:@localhost/psm_db
