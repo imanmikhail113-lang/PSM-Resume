@@ -8,6 +8,19 @@ from modules.database.models import db, ResumeAnalysis, User, TargetedScan, User
 from modules.nlp.ai_parser import analyze_targeted_compatibility, analyze_profile_image
 from werkzeug.utils import secure_filename
 from auth import configure_auth
+from rate_limiter import rate_limit
+import re
+
+def sanitize_error_message(err) -> str:
+    """Mask any API keys, database credentials, or sensitive tokens in error messages."""
+    if not err:
+        return "An internal server error occurred."
+    msg = str(err)
+    # Mask Gemini / Google API keys (AIzaSy...)
+    msg = re.sub(r'AIzaSy[A-Za-z0-9_-]{33}', '[REDACTED_API_KEY]', msg)
+    # Mask database connection URLs with passwords (e.g. postgresql://user:password@host...)
+    msg = re.sub(r'(://[^:]+:)([^@]+)(@)', r'\1****\3', msg)
+    return msg
 
 load_dotenv()
 
@@ -417,11 +430,12 @@ def db_status():
             "message": "Database connected successfully."
         })
     except Exception as e:
+        print(f"Database status error: {e}")
         return jsonify({
             "status": "error",
             "connected": False,
             "provider": "Unknown",
-            "message": str(e)
+            "message": "Database connection is currently unavailable."
         }), 500
 
 @app.route('/api/history/<int:user_id>', methods=['GET'])
@@ -497,6 +511,7 @@ def get_latest_discovery_scan(user_id):
     })
 
 @app.route('/api/analyze/discovery', methods=['POST'])
+@rate_limit(max_requests=15, window_seconds=60, key_prefix='discovery_scan', message='Too many discovery scan requests. Please wait a minute before trying again.')
 def analyze_discovery():
     data = request.get_json()
     user_id = data.get('user_id')
@@ -581,6 +596,7 @@ def analyze_discovery():
 
 
 @app.route('/api/analyze', methods=['POST'])
+@rate_limit(max_requests=10, window_seconds=60, key_prefix='analyze_resume', message='Too many resume upload requests. Please wait a minute before submitting again.')
 def analyze_resume():
     if 'file' not in request.files:
         return jsonify({"status": "error", "message": "No file part in the request."}), 400
@@ -698,9 +714,10 @@ def analyze_resume():
             }
         })
     except Exception as e:
-        return jsonify({"status": "error", "message": str(e)}), 500
+        return jsonify({"status": "error", "message": sanitize_error_message(e)}), 500
 
 @app.route('/api/analyze/targeted', methods=['POST'])
+@rate_limit(max_requests=15, window_seconds=60, key_prefix='targeted_scan', message='Too many targeted scan requests. Please wait a minute before trying again.')
 def targeted_scan():
     data = request.get_json()
     user_id = data.get('user_id')
@@ -738,9 +755,10 @@ def targeted_scan():
     except Exception as e:
         print(f"Error in targeted scan: {e}")
         db.session.rollback()
-        return jsonify({"status": "error", "message": str(e)}), 500
+        return jsonify({"status": "error", "message": sanitize_error_message(e)}), 500
 
 @app.route('/api/analyze/image', methods=['POST'])
+@rate_limit(max_requests=10, window_seconds=60, key_prefix='image_scan', message='Too many image scan requests. Please wait a minute before trying again.')
 def image_scan():
     from datetime import datetime
     if 'image' not in request.files and 'file' not in request.files:
@@ -815,7 +833,7 @@ def image_scan():
     except Exception as e:
         print(f"Error in image scan: {e}")
         db.session.rollback()
-        return jsonify({"status": "error", "message": str(e)}), 500
+        return jsonify({"status": "error", "message": sanitize_error_message(e)}), 500
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
