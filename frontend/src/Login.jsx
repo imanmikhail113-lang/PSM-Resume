@@ -44,7 +44,7 @@ export default function Login({ onLoginSuccess, restoringSession = false }) {
   const [attempt, setAttempt] = useState(0);
   const [showConfigModal, setShowConfigModal] = useState(false);
   const [customClientId, setCustomClientId] = useState(localStorage.getItem('custom_google_client_id') || '');
-  const [activeClientId, setActiveClientId] = useState('');
+  const [_activeClientId, setActiveClientId] = useState('');
 
   useEffect(() => {
     if (restoringSession) return;
