@@ -4,6 +4,13 @@
 *.env
 backend/.env
 
+# Local databases and secrets
+*.db
+*.sqlite
+*.sqlite3
+instance/
+backend/instance/
+
 # Dependencies
 node_modules/
 frontend/node_modules/
