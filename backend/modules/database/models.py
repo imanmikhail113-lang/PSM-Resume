@@ -1,7 +1,10 @@
 from flask_sqlalchemy import SQLAlchemy
-from datetime import datetime
+from datetime import datetime, timezone
 
 db = SQLAlchemy()
+
+def utc_now():
+    return datetime.now(timezone.utc).replace(tzinfo=None)
 
 class GoogleIdentity(db.Model):
     __tablename__ = 'google_identities'
@@ -21,7 +24,7 @@ class User(db.Model):
     username = db.Column(db.String(80), unique=True, nullable=True)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(255), nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=utc_now)
     
     analyses = db.relationship('ResumeAnalysis', backref='user', lazy=True, cascade="all, delete-orphan")
 
@@ -38,7 +41,7 @@ class ResumeAnalysis(db.Model):
     parsed_data = db.Column(db.JSON, nullable=True)
     parsed_method = db.Column(db.String(50), nullable=True)
     ats_score = db.Column(db.Integer, nullable=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=utc_now)
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -67,7 +70,7 @@ class TargetedScan(db.Model):
     job_description = db.Column(db.Text, nullable=False)
     compatibility_score = db.Column(db.Integer, nullable=False)
     feedback_data = db.Column(db.JSON, nullable=True) # To store missing_keywords, matched_skills, recommendations, reasoning, match_status
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=utc_now)
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -93,7 +96,7 @@ class UserImage(db.Model):
     score = db.Column(db.Integer, nullable=False)
     reasoning = db.Column(db.Text, nullable=True)
     feedback_data = db.Column(db.JSON, nullable=True) # To store full breakdown and improvementTips
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=utc_now)
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -141,7 +144,7 @@ class DiscoveryScan(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     results_data = db.Column(db.JSON, nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=utc_now)
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
