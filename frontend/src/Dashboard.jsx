@@ -598,12 +598,20 @@ function Dashboard({ onLogout, userId, theme = 'dark' }) {
         body: formData,
       });
 
-      const data = await response.json();
+      let data = null;
+      try {
+        const ct = response.headers.get('content-type') || '';
+        if (ct.includes('application/json')) {
+          data = await response.json();
+        }
+      } catch {
+        // Fallback for non-JSON responses
+      }
 
-      if (response.ok) {
+      if (response.ok && data) {
         completeProgress(() => {
           setResult(data.data);
-          if (data.data.parsed_content?.ats_score) {
+          if (data.data?.parsed_content?.ats_score) {
             setUserScore(data.data.parsed_content.ats_score);
           }
           fetchHistory();
@@ -611,12 +619,20 @@ function Dashboard({ onLogout, userId, theme = 'dark' }) {
       } else {
         cancelProgress();
         setLoading(false);
-        setError(data.message || "An error occurred during analysis.");
+        if (response.status === 401 || response.status === 403) {
+          setError(data?.message || "Your session has expired. Please refresh the page and sign in again.");
+        } else if (response.status === 502 || response.status === 503) {
+          setError("The backend server is starting up or deploying on Render. Please wait ~30 seconds and try again.");
+        } else if (response.status === 504) {
+          setError("The analysis took longer than expected to complete. Please try again.");
+        } else {
+          setError(data?.message || `Server returned error (${response.status}). Please try again.`);
+        }
       }
-    } catch {
+    } catch (err) {
       cancelProgress();
       setLoading(false);
-      setError("Failed to connect to the server. Is the backend running?");
+      setError(err?.message || "Failed to connect to the server. Is the backend running?");
     }
   };
 
@@ -643,16 +659,21 @@ function Dashboard({ onLogout, userId, theme = 'dark' }) {
         method: 'POST',
         body: formData
       });
-      const data = await response.json();
-      if (response.ok) {
+      let data = null;
+      try {
+        const ct = response.headers.get('content-type') || '';
+        if (ct.includes('application/json')) data = await response.json();
+      } catch { /* ignored */ }
+
+      if (response.ok && data) {
         setImageResult(data.data.feedback_data);
         setImagePreview(`${API_BASE_URL}${data.data.image_path}`);
         fetchImageHistory();
       } else {
-        setError(data.message || 'Image analysis failed.');
+        setError(data?.message || `Image analysis failed (HTTP ${response.status}).`);
       }
-    } catch {
-      setError('Could not connect to server.');
+    } catch (err) {
+      setError(err?.message || 'Could not connect to server.');
     } finally {
       setIsAnalyzingImage(false);
     }
@@ -672,18 +693,23 @@ function Dashboard({ onLogout, userId, theme = 'dark' }) {
           job_description: jobDescription
         })
       });
-      const data = await response.json();
-      if (response.ok) {
+      let data = null;
+      try {
+        const ct = response.headers.get('content-type') || '';
+        if (ct.includes('application/json')) data = await response.json();
+      } catch { /* ignored */ }
+
+      if (response.ok && data) {
         setTargetedResult(data.data);
         setCareerMode('TARGETED');
         localStorage.setItem(`careerMode_${userId}`, 'TARGETED');
         setActiveTab('CAREER');
         setShowTargetedModal(false);
       } else {
-        setError(data.message || 'Targeted analysis failed.');
+        setError(data?.message || `Targeted analysis failed (HTTP ${response.status}).`);
       }
-    } catch {
-      setError('Could not connect to server.');
+    } catch (err) {
+      setError(err?.message || 'Could not connect to server.');
     } finally {
       setIsAnalyzingTargeted(false);
     }
@@ -699,17 +725,22 @@ function Dashboard({ onLogout, userId, theme = 'dark' }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ user_id: userId })
       });
-      const data = await response.json();
-      if (response.ok && data.data) {
+      let data = null;
+      try {
+        const ct = response.headers.get('content-type') || '';
+        if (ct.includes('application/json')) data = await response.json();
+      } catch { /* ignored */ }
+
+      if (response.ok && data && data.data) {
         setDiscoveryResult(data.data.results_data);
         setCareerMode('DISCOVERY');
         localStorage.setItem(`careerMode_${userId}`, 'DISCOVERY');
         setActiveTab('CAREER');
       } else {
-        setError(data.message || 'Discovery scan failed.');
+        setError(data?.message || `Discovery scan failed (HTTP ${response.status}).`);
       }
-    } catch {
-      setError('Could not connect to server.');
+    } catch (err) {
+      setError(err?.message || 'Could not connect to server.');
     } finally {
       setIsAnalyzingDiscovery(false);
     }
