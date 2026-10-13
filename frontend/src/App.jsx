@@ -3,6 +3,7 @@ import Login from './Login';
 const Dashboard = lazy(() => import('./Dashboard'));
 import { authRequest, rememberSession } from './api';
 import FeedbackFAB from './FeedbackFAB';
+import ErrorBoundary from './ErrorBoundary';
 import './index.css';
 import './studio.css';
 
@@ -44,7 +45,7 @@ export default function App() {
   }
 
   return (
-    <>
+    <ErrorBoundary onReset={logout}>
       {sessionError && (
         <div className="session-notice" role="alert">
           {sessionError}
@@ -59,6 +60,6 @@ export default function App() {
         <Login restoringSession={checking} onLoginSuccess={id => { setUserId(id); setSessionError(''); }} />
       )}
       <FeedbackFAB />
-    </>
+    </ErrorBoundary>
   );
 }
